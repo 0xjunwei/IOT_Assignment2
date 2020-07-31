@@ -165,7 +165,7 @@ def apidata_getdata():
 def apidata_login():
     try:
 
-        table_name = 'grabtable'
+        table_name = 'users'
         print(f'Querying table : {table_name}')
         dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
         table = dynamodb.Table(table_name)
@@ -213,7 +213,7 @@ def apidata_login():
 def apidata_register():
     try:
 
-        table_name = 'grabtable'
+        table_name = 'users'
         print(f'Querying table : {table_name}')
         dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
         table = dynamodb.Table(table_name)
