@@ -94,7 +94,7 @@ if __name__ == "__main__":
         
     except KeyboardInterrupt:
         print('Interrupted')
-        mysqlm.disconnect()
+        #mysqlm.disconnect()
         sys.exit()
 
 
