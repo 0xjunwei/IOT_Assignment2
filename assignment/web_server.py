@@ -181,9 +181,6 @@ def apidata_login():
             username = request.form['username']
             password = request.form['password']
 
-
-
-
         if (userlogin):
             session['username'] = username
             return redirect(url_for('dashboard', username = username), code = 303)
@@ -204,8 +201,6 @@ def apidata_register():
         dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
         table = dynamodb.Table(table_name)
 
-        startdate = '2020-07'
-
         # Output message if error
         name = 'username'
         msg = ''
@@ -219,8 +214,14 @@ def apidata_register():
             cpassword = request.form['cpassword']
 
         my_rpi = AWSIoTMQTTClient("registerUser")
+        host = "a19dfxc0pabiyn-ats.iot.us-east-1.amazonaws.com"
+        rootCAPath = "certs/rootca.pem"
+        certificatePath = "certs/users-certificate.pem.crt"
+        privateKeyPath = "certs/users-private.pem.key"
+        my_rpi.configureEndpoint(host, 8883)
+        my_rpi.configureCredentials(rootCAPath, privateKeyPath, certificatePath)
 
-        r = { "username": username, "email": email, "number": number, "password": password }   
+        r = { "username": username, "email": email, "number": number, "password": password, 'role': role }   
 
         my_rpi.publish("iot/users", json.dumps(r), 1)
 
