@@ -180,14 +180,23 @@ def apidata_login():
             username = request.form['username']
             password = request.form['password']
 
-        u='iotuser';pw='iotpassword';h='localhost';db='iotdatabase'
-        mysqlm = MySQLManager(u,pw,h,db)
-        mysqlm.connect()
-            
-        sql=f"SELECT * FROM users WHERE username=%(username)s AND password=%(password)s"
-        logindetails = {"username": username, "password": password}            
-        userlogin = mysqlm.fetch_fromdb_as_list(sql,logindetails)
-        mysqlm.disconnect()
+         response = table.query(
+            #KeyConditionExpression=key('bookingid').eq('0.0')
+            #Add the name of the index you want to use in your query
+
+            IndexName="bookingid-datetime_value-index",
+            KeyConditionExpression=Key('bookingid').eq('0.0'),
+            ScanIndexForward=False,
+            limit=10
+        )
+
+        items = response['Items']
+
+        n=10 #limit to last 10 items
+        data = items[:n]
+        data_reversed = data[::-1]
+
+        return data_reversed
 
         if (userlogin):
             session['username'] = username
@@ -203,6 +212,14 @@ def apidata_login():
 @app.route("/api/register",methods=['GET', 'POST'])
 def apidata_register():
     try:
+
+        table_name = 'grabtable'
+        print(f'Querying table : {table_name}')
+        dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+        table = dynamodb.Table(table_name)
+
+        startdate = '2020-07'
+
         # Output message if error
         name = 'username'
         msg = ''
@@ -215,20 +232,29 @@ def apidata_register():
             password = request.form['password']
             cpassword = request.form['cpassword']
 
-        u='iotuser';pw='iotpassword';h='localhost';db='iotdatabase'
-        mysqlm = MySQLManager(u,pw,h,db)
-        mysqlm.connect()
-            
-        sql="INSERT INTO users (username,email,number,password,role) VALUES (%(username)s, %(email)s, %(number)s, %(password)s, %(role)s)"
-        registerdetails = {"username": username, "email": email, "number": number, "password": password, "role": role}            
-        userregister = mysqlm.insertupdatedelete(QUERYTYPE_INSERT,sql,registerdetails)
-        mysqlm.disconnect()
+        response = table.query(
+            #KeyConditionExpression=key('bookingid').eq('0.0')
+            #Add the name of the index you want to use in your query
+
+            IndexName="bookingid-datetime_value-index",
+            KeyConditionExpression=Key('bookingid').eq('0.0'),
+            ScanIndexForward=False,
+            limit=10
+        )
 
         if (userregister):
             session['username'] = username
             return redirect(url_for('dashboard', username = username), code = 303)
         else:
             return render_template('register.html', msg = "Incorrect fields, please try again")
+
+        items = response['Items']
+
+        n=10 #limit to last 10 items
+        data = items[:n]
+        data_reversed = data[::-1]
+
+        return data_reversed
         
     except:
         print(sys.exc_info()[0])
