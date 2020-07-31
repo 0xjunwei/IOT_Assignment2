@@ -95,7 +95,15 @@ def apidata_showbookingid():
         if 'datalimit' in request.form:
             limit = request.form['datalimit']       
 
-        response = table.query
+        response = table.query(
+            #KeyConditionExpression=key('bookingid').eq('0.0')
+            #Add the name of the index you want to use in your query
+
+            IndexName="bookingid-datetime_value-index",
+            KeyConditionExpression=Key('bookingid').eq(bookingid),
+            ScanIndexForward=False,
+            limit=10
+        )
 
         sql=f"SELECT MAX(datetimestart_value) FROM iotapp"
         datasql = {}            
