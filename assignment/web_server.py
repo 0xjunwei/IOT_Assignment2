@@ -105,34 +105,13 @@ def apidata_showbookingid():
             limit=10
         )
 
-        sql=f"SELECT MAX(datetimestart_value) FROM iotapp"
-        datasql = {}            
-        list_data = mysqlm.fetch_fromdb_as_list(sql,datasql)
+        items = response['Items']
 
-        if len(list_data)>0:
-            max_datetimestart_value = list_data[0]['MAX(datetimestart_value)']
+        n=10 #limit to last 10 items
+        data = items[:n]
+        data_reversed = data[::-1]
 
-            if bookingid == "ALL":
-                sql=f"SELECT * FROM iotapp WHERE datetimestart_value=%(datetimestart_value)s ORDER BY datetime_value DESC"
-                datasql = {"datetimestart_value": max_datetimestart_value}
-            else:                
-                sql=f"SELECT * FROM iotapp WHERE bookingid=%(bookingid)s AND datetimestart_value=%(datetimestart_value)s ORDER BY datetime_value DESC"
-                datasql = {"bookingid": bookingid, "datetimestart_value": max_datetimestart_value}
-        else:
-            if bookingid == "ALL":
-                sql=f"SELECT * FROM iotapp ORDER BY datetime_value DESC LIMIT {limit}"
-                datasql = {}
-            else:                
-                sql=f"SELECT * FROM iotapp WHERE bookingid=%(bookingid)s ORDER BY datetime_value DESC"
-                datasql = {"bookingid": bookingid}
-                
-        json_data = mysqlm.fetch_fromdb_as_json(sql,datasql)
-        loaded_r = json.loads(json_data)
-        data = {'chart_data': loaded_r, 'title': "IOT Data", 'chart_data_length': len(json_data)}
-
-        mysqlm.disconnect()
-        
-        return jsonify(data)
+        return data_reversed
         
     except:
         print(sys.exc_info()[0])
