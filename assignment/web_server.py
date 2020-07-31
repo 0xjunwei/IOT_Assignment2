@@ -219,7 +219,7 @@ def apidata_register():
             cpassword = request.form['cpassword']
 
         my_rpi = AWSIoTMQTTClient("registerUser")
-
+        
         r = { "username": username, "email": email, "number": number, "password": password }   
 
         my_rpi.publish("iot/users", json.dumps(r), 1)
