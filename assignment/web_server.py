@@ -164,6 +164,14 @@ def apidata_getdata():
 @app.route("/api/login",methods=['GET', 'POST'])
 def apidata_login():
     try:
+
+        table_name = 'grabtable'
+        print(f'Querying table : {table_name}')
+        dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+        table = dynamodb.Table(table_name)
+
+        startdate = '2020-07'
+
         # Output message if error
         name = 'username'
         msg = ''
