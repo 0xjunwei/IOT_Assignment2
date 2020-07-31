@@ -180,7 +180,7 @@ def apidata_login():
             username = request.form['username']
             password = request.form['password']
 
-         response = table.query(
+        response = table.query(
             #KeyConditionExpression=key('bookingid').eq('0.0')
             #Add the name of the index you want to use in your query
 
