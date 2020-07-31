@@ -12,6 +12,8 @@ import requests
 import time
 import winsound
 
+import boto3
+from boto3.dynamodb.conditions import Key, Attr
 import json
 
 from datetime import datetime
@@ -76,6 +78,15 @@ def apidata_sendalert():
 @app.route("/api/showbookingid",methods=['GET', 'POST'])
 def apidata_showbookingid():
     try:
+
+        table_name = 'grabtable'
+        print(f'Querying table : {table_name}')
+        dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+        table = dynamodb.Table(table_name)
+
+        startdate = '2020-07'
+
+
         bookingid = '51539607614.0'
         limit = 1000
         bookingid = "ALL"
@@ -84,9 +95,7 @@ def apidata_showbookingid():
         if 'datalimit' in request.form:
             limit = request.form['datalimit']       
 
-        u='iotuser';pw='iotpassword';h='localhost';db='iotdatabase'
-        mysqlm = MySQLManager(u,pw,h,db)
-        mysqlm.connect()
+        response = table.query
 
         sql=f"SELECT MAX(datetimestart_value) FROM iotapp"
         datasql = {}            
@@ -127,6 +136,13 @@ def apidata_showbookingid():
 @app.route("/api/getdata",methods=['GET', 'POST'])
 def apidata_getdata():
     try:
+        table_name = 'grabtable'
+        print(f'Querying table : {table_name}')
+        dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+        table = dynamodb.Table(table_name)
+
+        startdate = '2020-07'
+
         bookingid = '51539607614.0'
         limit = 1000
         bookingid = "ALL"
@@ -135,39 +151,24 @@ def apidata_getdata():
         if 'datalimit' in request.form:
             limit = request.form['datalimit']       
 
-        u='iotuser';pw='iotpassword';h='localhost';db='iotdatabase'
-        mysqlm = MySQLManager(u,pw,h,db)
-        mysqlm.connect()
+        response = table.query(
+            #KeyConditionExpression=key('bookingid').eq('0.0')
+            #Add the name of the index you want to use in your query
 
-        sql=f"SELECT MAX(datetimestart_value) FROM iotapp"
-        datasql = {}            
-        list_data = mysqlm.fetch_fromdb_as_list(sql,datasql)
+            IndexName="bookingid-datetime_value-index",
+            KeyConditionExpression=Key('bookingid').eq('0.0'),
+            ScanIndexForward=False,
+            limit=10
+        )
 
-        if len(list_data)>0:
-            max_datetimestart_value = list_data[0]['MAX(datetimestart_value)']
+        items = response['Items']
 
-            if bookingid == "ALL":
-                sql=f"SELECT * FROM iotapp WHERE datetimestart_value=%(datetimestart_value)s ORDER BY datetime_value DESC"
-                datasql = {"datetimestart_value": max_datetimestart_value}
-            else:                
-                sql=f"SELECT * FROM iotapp WHERE bookingid=%(bookingid)s AND datetimestart_value=%(datetimestart_value)s ORDER BY datetime_value DESC"
-                datasql = {"bookingid": bookingid, "datetimestart_value": max_datetimestart_value}
-        else:
-            if bookingid == "ALL":
-                sql=f"SELECT * FROM iotapp ORDER BY datetime_value DESC LIMIT {limit}"
-                datasql = {}
-            else:                
-                sql=f"SELECT * FROM iotapp WHERE bookingid=%(bookingid)s ORDER BY datetime_value DESC"
-                datasql = {"bookingid": bookingid}
-                
-        json_data = mysqlm.fetch_fromdb_as_json(sql,datasql)
-        loaded_r = json.loads(json_data)
-        data = {'chart_data': loaded_r, 'title': "IOT Data", 'chart_data_length': len(json_data)}
+        n=10 #limit to last 10 items
+        data = items[:n]
+        data_reversed = data[::-1]
 
-        mysqlm.disconnect()
-        
-        return jsonify(data)
-        
+        return data_reversed
+
     except:
         print(sys.exc_info()[0])
         print(sys.exc_info()[1])
