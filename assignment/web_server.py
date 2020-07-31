@@ -184,10 +184,10 @@ def apidata_login():
             #KeyConditionExpression=key('bookingid').eq('0.0')
             #Add the name of the index you want to use in your query
 
-            IndexName="bookingid-datetime_value-index",
-            KeyConditionExpression=Key('bookingid').eq('0.0'),
-            ScanIndexForward=False,
-            limit=10
+            # IndexName="bookingid-datetime_value-index",
+            # KeyConditionExpression=Key('bookingid').eq('0.0'),
+            # ScanIndexForward=False,
+            # limit=10
         )
 
         items = response['Items']
@@ -236,10 +236,10 @@ def apidata_register():
             #KeyConditionExpression=key('bookingid').eq('0.0')
             #Add the name of the index you want to use in your query
 
-            IndexName="bookingid-datetime_value-index",
-            KeyConditionExpression=Key('bookingid').eq('0.0'),
-            ScanIndexForward=False,
-            limit=10
+            # IndexName="bookingid-datetime_value-index",
+            # KeyConditionExpression=Key('bookingid').eq('0.0'),
+            # ScanIndexForward=False,
+            # limit=10
         )
 
         if (userregister):
