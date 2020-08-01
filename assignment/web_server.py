@@ -126,13 +126,15 @@ def apidata_getdata():
         dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
         table = dynamodb.Table(table_name)
 
-        response = table.query(
+        #response = table.query(
             # Add the name of the index you want to use in your query.
-            IndexName="bookingid-datetime_value-index",
-            KeyConditionExpression=Key('bookingid').eq('0.0'),
-            ScanIndexForward=False,
-            Limit=10
-        )            
+        #    IndexName="bookingid-datetime_value-index",
+        #    KeyConditionExpression=Key('bookingid').eq('0.0'),
+        #    ScanIndexForward=False,
+        #    Limit=10
+        #)            
+
+        response = table.scan()
 
         items = response['Items']
 
