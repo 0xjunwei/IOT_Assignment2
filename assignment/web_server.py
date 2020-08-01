@@ -142,8 +142,6 @@ def apidata_getdata():
         print(data_reversed)
         #print( (json.loads(jsonc.data_to_json(data_reversed)))
         return jsonify(json.loads(jsonc.data_to_json(data_reversed)))
-
-
     except:
         print(sys.exc_info()[0])
         print(sys.exc_info()[1])
