@@ -134,7 +134,10 @@ def apidata_getdata():
         #    Limit=10
         #)            
 
-        response = table.scan(ScanIndexForward=False)
+        response = table.scan(
+            IndexName="bookingid-datetime_value-index",
+            Limit=10
+        )
 
         items = response['Items']
 
