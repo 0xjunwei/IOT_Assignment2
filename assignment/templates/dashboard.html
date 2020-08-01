@@ -34,212 +34,212 @@
   <link rel="stylesheet" href="../static/css/argon.css?v=1.2.0" type="text/css">
 
 
-  
 
-<!-- CHART AREA FUNCTIONS -->
+
+  <!-- CHART AREA FUNCTIONS -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   <script type="text/javascript">
-      google.charts.load('current', {'packages':['corechart','table']});
-      google.charts.setOnLoadCallback(googlecharts_is_ready);
+    google.charts.load('current', { 'packages': ['corechart', 'table'] });
+    google.charts.setOnLoadCallback(googlecharts_is_ready);
 
-      var chart, table;
-      var graphdata;
-      var tabledata;
-      var drivers;
-      var average_speed;
-      var max_speed;
-      var current_max_speed = 0;
+    var chart, table;
+    var graphdata;
+    var tabledata;
+    var drivers;
+    var average_speed;
+    var max_speed;
+    var current_max_speed = 0;
+    function getDashboardData() {
+      jQuery.ajax({
+        url: "/api/getdashboarddata",
+        type: 'POST',
+        success: function (ndata) {
+          drivers = ndata.driver_data[0].dashboarddata
+          average_speed = ndata.average_speed_data[0].dashboarddata
+          max_speed = ndata.max_speed[0].dashboarddata
+          if (max_speed >= current_max_speed) {
+            current_max_speed = max_speed
+          }
+          else {
+            current_max_speed = current_max_speed
+          }
+          current_max_speed = Math.round(current_max_speed)
+          displayConnected(drivers, average_speed, current_max_speed)
 
-      function getDashboardData(){
-        jQuery.ajax({
-            url: "/api/getdashboarddata" ,
-            type: 'POST',            
-            success: function(ndata){ 
-                drivers = ndata.driver_data[0].dashboarddata
-                average_speed = ndata.average_speed_data[0].dashboarddata
-                max_speed = ndata.max_speed[0].dashboarddata
-                if (max_speed >= current_max_speed) {
-                    current_max_speed = max_speed
-                  }
-                else{
-                    current_max_speed = current_max_speed
-                }
-                current_max_speed = Math.round(current_max_speed)
-                displayConnected(drivers, average_speed, current_max_speed)
-
-            } // end of success
+        } // end of success
       }); // end of ajax
     } // end of getDashboardData
 
-      function displayConnected(drivers, average_speed, max_speed){
-        document.getElementById("drivers").innerHTML = drivers;
-        document.getElementById("average_speed").innerHTML = average_speed;
-        document.getElementById("max_speed").innerHTML = max_speed + " KM/H";
+    function displayConnected(drivers, average_speed, max_speed) {
+      document.getElementById("drivers").innerHTML = drivers;
+      document.getElementById("average_speed").innerHTML = average_speed;
+      document.getElementById("max_speed").innerHTML = max_speed + " KM/H";
+    }
+
+    function googlecharts_is_ready() {
+    }
+
+
+    function getNewData() {
+
+      jQuery.ajax({
+        url: "/api/getdata",
+        type: 'POST',
+        success: function (ndata, textStatus, xhr) {
+          chartdata = ndata;
+          chartdatalength = chartdata.length;
+          //chartdatalength  = parseInt(ndata.chart_data_length)
+          graphdata = createDataTableForChart(chartdata, chartdatalength)
+          tabledata = createDataTableForTable(chartdata, chartdatalength)
+          drawLineChart(graphdata, "chart_div")
+          drawDataTable(tabledata, "table_div")
+
+        }//end of success
+      });//end of ajax
+    } //end of getNewData
+
+    function createDataTableForTable(newdata, newdatalength) {
+      tabledata = new google.visualization.DataTable();
+
+      tabledata.addColumn('string', 'Time');
+      tabledata.addColumn('string', 'Elapsed');
+      tabledata.addColumn('number', 'Speed (km/hour)');
+
+      currentrow = 0
+
+      for (i in newdata) {
+        console.log(newdata[i]);
+        speed = newdata[i].speedkmhour
+        seconds = parseInt(newdata[i].seconds)
+        minutes = Math.floor(seconds / 60)
+        seconds_str = minutes + " minutes " + (seconds - (minutes * 60)) + " seconds"
+        datetime = newdata[i].datetime_value;
+        jsdatetime = new Date(Date.parse(datetime));
+
+        jstime = jsdatetime.toLocaleTimeString();
+        tabledata.addRows([[jstime, seconds_str, speed]]);
+        currentrow++
+
       }
-    
-      function googlecharts_is_ready(){
-      }
+
+      tabledata.removeRows(0, currentrow - 10)
+
+      return tabledata
+    }
+
+    function createDataTableForChart(newdata, newdatalength) {
+      graphdata = new google.visualization.DataTable();
 
 
-      function getNewData(){
+      var displaybookingid = [];
+      graphdata.addColumn('string', 'Time');
+      //graphdata.addColumn('number', 'Speed');
 
-          jQuery.ajax({
-              url: "/api/getdata" ,
-              type: 'POST',          
-              success: function(ndata, textStatus, xhr){ 
-                  chartdata = ndata.chart_data.data
-                  chartdatalength  = parseInt(ndata.chart_data_length)
-                  graphdata = createDataTableForChart(chartdata,chartdatalength)
-                  tabledata = createDataTableForTable(chartdata,chartdatalength)          
-                  drawLineChart(graphdata,"chart_div")
-                  drawDataTable(tabledata,"table_div")
-                  
-              }//end of success
-          });//end of ajax
-        } //end of getNewData
+      currentrow = 0;
+      speed1 = 0;
+      speed2 = 0;
+      speed3 = 0;
 
-        function createDataTableForTable(newdata,newdatalength){
-          tabledata = new google.visualization.DataTable();       
-          
-          tabledata.addColumn('string', 'Time');
-          tabledata.addColumn('string', 'Elapsed');
-          tabledata.addColumn('number', 'Speed (km/hour)');
-                             
-          currentrow = 0
-          
-          for (i in newdata){
-          
-                speed = newdata[i].speedkmhour
-                seconds =  parseInt(newdata[i].seconds)
-                minutes = Math.floor(seconds/60)
-                seconds_str = minutes + " minutes " + (seconds-(minutes*60)) + " seconds"
-                datetime = newdata[i].datetime_value;
-                jsdatetime = new Date(Date.parse(datetime));              
-                
-                jstime = jsdatetime.toLocaleTimeString();                
-                tabledata.addRows([[jstime,seconds_str,speed]]);
-                currentrow++
-          
+      for (i in newdata) {
+        speed = newdata[i].speedkmhour;
+        datetime = newdata[i].datetime_value;
+        jsdatetime = new Date(Date.parse(datetime));
+        bookingid = newdata[i].bookingid
+        jstime = jsdatetime.toLocaleTimeString();
+
+        if (displaybookingid.includes(bookingid)) {
+          j = displaybookingid.indexOf(bookingid);
+          if (j == 0) {
+            if (displaybookingid.length == 1) {
+              graphdata.addRows([[jstime, speed]])
+            }
+            else if (displaybookingid.length == 2) {
+              graphdata.addRows([[jstime, speed, null]])
+            }
+            else {
+              graphdata.addRows([[jstime, speed, null, null]])
+            }
+            currentrow++
+          }
+          else if (j == 1) {
+            if (displaybookingid.length == 2) {
+              graphdata.addRows([[jstime, null, speed]])
+            }
+            else if (displaybookingid.length == 3) {
+              graphdata.addRows([[jstime, null, speed, null]])
+            }
+            currentrow++
+          }
+          else {
+            graphdata.addRows([[jstime, null, null, speed]])
+            currentrow++
+          }
+        }
+        else {
+          displaybookingid.push(bookingid)
+          j = displaybookingid.indexOf(bookingid)
+          if (j == 0) {
+            graphdata.addColumn('number', bookingid);
+            graphdata.addRows([[jstime, speed]])
+            currentrow++
+          }
+          else if (j == 1) {
+            graphdata.addColumn('number', bookingid);
+            graphdata.addRows([[jstime, null, speed]])
+            currentrow++
+          }
+          else {
+            graphdata.addColumn('number', bookingid);
+            graphdata.addRows([[jstime, null, null, speed]])
+            currentrow++
           }
 
-          tabledata.removeRows(0,currentrow-10)
-          
-          return tabledata
+        }
       }
 
-      function createDataTableForChart(newdata,newdatalength){
-          graphdata = new google.visualization.DataTable();       
-          
+      //null is the position of the booking
 
-          var displaybookingid = [];
-          graphdata.addColumn('string', 'Time');
-          //graphdata.addColumn('number', 'Speed');
-                             
-          currentrow = 0;
-          speed1 = 0;
-          speed2 = 0;
-          speed3 = 0;
-          
-          for (i in newdata){   
-                speed = newdata[i].speedkmhour;
-                datetime = newdata[i].datetime_value;
-                jsdatetime = new Date(Date.parse(datetime));              
-                bookingid = newdata[i].bookingid
-                jstime = jsdatetime.toLocaleTimeString(); 
+      //graphdata.addRows([[jstime,speed]]);
+      //currentrow++
+      graphdata.removeRows(0, currentrow - 10)
 
-                if (displaybookingid.includes(bookingid)){
-                  j = displaybookingid.indexOf(bookingid);
-                  if (j == 0){
-                    if (displaybookingid.length == 1){
-                        graphdata.addRows([[jstime,speed]])
-                      } 
-                      else if (displaybookingid.length == 2){
-                        graphdata.addRows([[jstime,speed,null]])
-                        } 
-                        else {
-                          graphdata.addRows([[jstime,speed,null,null]])
-                         } 
-                          currentrow++
-                          }
-                          else if (j == 1){
-                            if (displaybookingid.length == 2){
-                              graphdata.addRows([[jstime,null,speed]])
-                              } 
-                              else if (displaybookingid.length == 3){
-                                graphdata.addRows([[jstime,null,speed,null]])
-                                }
-                                 currentrow++
-                                } 
-                                else {
-                                  graphdata.addRows([[jstime,null,null,speed]])
-                                  currentrow++
-                                }              
-                        }
-                        else { 
-                          displaybookingid.push(bookingid)
-                            j = displaybookingid.indexOf(bookingid)
-                            if (j == 0){
-                                    graphdata.addColumn('number', bookingid);
-                                    graphdata.addRows([[jstime,speed]])
-                                    currentrow++
-                                   }
-                                else if ( j == 1){
-                                    graphdata.addColumn('number', bookingid);
-                                    graphdata.addRows([[jstime,null,speed]])
-                                    currentrow++
-                                    }
-                                else{
-                                    graphdata.addColumn('number', bookingid);
-                                    graphdata.addRows([[jstime,null,null,speed]])
-                                    currentrow++
-                                    }
-                      
-                            }
-                        }
+      return graphdata
 
-                //null is the position of the booking
-                              
-                //graphdata.addRows([[jstime,speed]]);
-                //currentrow++
-                graphdata.removeRows(0,currentrow-10)
-          
-                return graphdata
-          
-          }
+    }
 
 
 
-      function drawDataTable(tabledata, divname){
-          table = new google.visualization.Table(document.getElementById(divname));
-          table.draw(tabledata, {showRowNumber: true, width: '100%', height: '100%'});
-  
-      }//end drawTable
+    function drawDataTable(tabledata, divname) {
+      table = new google.visualization.Table(document.getElementById(divname));
+      table.draw(tabledata, { showRowNumber: true, width: '100%', height: '100%' });
 
-      function drawLineChart(graphdata,divname) {
-          chart = new google.visualization.LineChart(document.getElementById(divname));
-          var options = {
-                            interpolateNulls:true,
-                            pointSize: 5,
-                            curveType: 'function',
-                            legend: 'bottom', 
-                            vAxis: {baseline:0, viewWindow: {min: 0, max:120}},
-                            hAxis: {format: 'hh:mm:ss'}
-                        }
-            chart.draw(graphdata, options);
-          return 
-      } //end drawChart
+    }//end drawTable
 
-      $(document).ready(function(){          
+    function drawLineChart(graphdata, divname) {
+      chart = new google.visualization.LineChart(document.getElementById(divname));
+      var options = {
+        interpolateNulls: true,
+        pointSize: 5,
+        curveType: 'function',
+        legend: 'bottom',
+        vAxis: { baseline: 0, viewWindow: { min: 0, max: 120 } },
+        hAxis: { format: 'hh:mm:ss' }
+      }
+      chart.draw(graphdata, options);
+      return
+    } //end drawChart
 
-          setInterval(function () {
-            getNewData()
-            getDashboardData()
+    $(document).ready(function () {
 
-          }, 1000);
-      }); // display the data out in the dashboard page
+      setInterval(function () {
+        getNewData()
+        getDashboardData()
 
-</script>
+      }, 1000);
+    }); // display the data out in the dashboard page
+
+  </script>
 
 </head>
 
@@ -250,7 +250,7 @@
       <!-- Brand -->
       <div class="sidenav-header  align-items-center">
         <a class="navbar-brand" href="javascript:void(0)">
-          <img src="../static/assets/images/brand/iot_logo.png" class="navbar-brand-img" >
+          <img src="../static/assets/images/brand/iot_logo.png" class="navbar-brand-img">
         </a>
       </div>
       <div class="navbar-inner">
@@ -296,16 +296,18 @@
       <div class="container-fluid">
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <!-- Search form -->
-          <form class="navbar-search navbar-search-light form-inline mr-sm-3" id="navbar-search-main" action="{{ url_for('showbookingid') }}" method="POST">
+          <form class="navbar-search navbar-search-light form-inline mr-sm-3" id="navbar-search-main"
+            action="{{ url_for('showbookingid') }}" method="POST">
             <div class="form-group mb-0">
               <div class="input-group input-group-alternative input-group-merge">
                 <div class="input-group-prepend">
                   <span class="input-group-text"><i class="fas fa-search"></i></span>
                 </div>
-                <input class="form-control" placeholder="Search" type="text" id = "getbookingid" name = "getbookingid">
+                <input class="form-control" placeholder="Search" type="text" id="getbookingid" name="getbookingid">
               </div>
             </div>
-            <button type="button" class="close" data-action="search-close" data-target="#navbar-search-main" aria-label="Close">
+            <button type="button" class="close" data-action="search-close" data-target="#navbar-search-main"
+              aria-label="Close">
               <span aria-hidden="true">×</span>
             </button>
           </form>
@@ -313,7 +315,8 @@
           <ul class="navbar-nav align-items-center  ml-md-auto ">
             <li class="nav-item d-xl-none">
               <!-- Sidenav toggler -->
-              <div class="pr-3 sidenav-toggler sidenav-toggler-dark" data-action="sidenav-pin" data-target="#sidenav-main">
+              <div class="pr-3 sidenav-toggler sidenav-toggler-dark" data-action="sidenav-pin"
+                data-target="#sidenav-main">
                 <div class="sidenav-toggler-inner">
                   <i class="sidenav-toggler-line"></i>
                   <i class="sidenav-toggler-line"></i>
@@ -396,7 +399,7 @@
                   <div class="row">
                     <div class="col">
                       <h5 class="card-title text-uppercase text-muted mb-0">Maximum Speed</h5>
-                      <div id ="max_speed"></div>
+                      <div id="max_speed"></div>
                     </div>
                     <div class="col-auto">
                       <div class="icon icon-shape bg-gradient-red text-white rounded-circle shadow">
@@ -424,7 +427,7 @@
               </div>
             </div>
             <!-- CHART AREA-->
-            <div class="card-body"> 
+            <div class="card-body">
               <div class="chart-area">
                 <div id="status"></div>
                 <div id="chart_div"></div>
@@ -446,7 +449,7 @@
             <div class="table-responsive">
               <!-- SPEED TABLE -->
               <table class="table align-items-center table-flush">
-                <div class="card-body"> 
+                <div class="card-body">
                   <div class="chart-area">
                     <div id="table_div"></div>
                   </div>

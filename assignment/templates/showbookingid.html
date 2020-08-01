@@ -91,8 +91,9 @@
               type: 'POST',  
               data: {getbookingid: abookingid},        
               success: function(ndata, textStatus, xhr){ 
-                  chartdata = ndata.chart_data.data
-                  chartdatalength  = parseInt(ndata.chart_data_length)
+                  chartdata = ndata;
+                  chartdatalength = chartdata.length;
+                  //chartdatalength  = parseInt(ndata.chart_data_length)
                   graphdata = createDataTableForChart(chartdata,chartdatalength)
                   tabledata = createDataTableForTable(chartdata,chartdatalength)          
                   drawLineChart(graphdata,"chart_div")

@@ -23,6 +23,8 @@ from IOTAssignmentUtilitiesdorachua.MySQLManager import QUERYTYPE_DELETE, QUERYT
 
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 
+import jsonconverter as jsonc
+
 app = Flask(__name__)
 
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
@@ -88,22 +90,17 @@ def apidata_showbookingid():
         startdate = '2020-07'
 
 
-        bookingid = '51539607614.0'
-        limit = 1000
-        bookingid = "ALL"
+        bookingid = '0.0'
         if 'getbookingid' in request.form:        
-            bookingid = request.form['getbookingid']
-        if 'datalimit' in request.form:
-            limit = request.form['datalimit']       
+            bookingid = request.form['getbookingid']     
 
         response = table.query(
             #KeyConditionExpression=key('bookingid').eq('0.0')
             #Add the name of the index you want to use in your query
-
             IndexName="bookingid-datetime_value-index",
             KeyConditionExpression=Key('bookingid').eq(bookingid),
             ScanIndexForward=False,
-            limit=10
+            Limit=10
         )
 
         items = response['Items']
@@ -112,7 +109,7 @@ def apidata_showbookingid():
         data = items[:n]
         data_reversed = data[::-1]
 
-        return data_reversed
+        return jsonify(json.loads(jsonc.data_to_json(data_reversed)))
         
     except:
         print(sys.exc_info()[0])
@@ -125,37 +122,27 @@ def apidata_showbookingid():
 def apidata_getdata():
     try:
         table_name = 'grabtable'
-        print(f'Querying table : {table_name}')
+        print(f"Querying table {table_name}")
         dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
         table = dynamodb.Table(table_name)
 
-        startdate = '2020-07'
-
-        bookingid = '51539607614.0'
-        limit = 1000
-        bookingid = "ALL"
-        if 'bookingid' in request.form:        
-            bookingid = request.form['bookingid']
-        if 'datalimit' in request.form:
-            limit = request.form['datalimit']       
-
         response = table.query(
-            #KeyConditionExpression=key('bookingid').eq('0.0')
-            #Add the name of the index you want to use in your query
-
+            # Add the name of the index you want to use in your query.
             IndexName="bookingid-datetime_value-index",
             KeyConditionExpression=Key('bookingid').eq('0.0'),
             ScanIndexForward=False,
-            limit=10
-        )
+            Limit=10
+        )            
 
         items = response['Items']
 
-        n=10 #limit to last 10 items
+        n=10 # limit to last 10 items
         data = items[:n]
         data_reversed = data[::-1]
+        print(data_reversed)
+        #print( (json.loads(jsonc.data_to_json(data_reversed)))
+        return jsonify(json.loads(jsonc.data_to_json(data_reversed)))
 
-        return data_reversed
 
     except:
         print(sys.exc_info()[0])
@@ -275,6 +262,8 @@ def apidata_profile():
 @app.route("/api/getdashboarddata",methods=['GET', 'POST'])
 def apidata_getdashboarddata():
     try:
+        
+
         u='iotuser';pw='iotpassword';h='localhost';db='iotdatabase'
         mysqlm = MySQLManager(u,pw,h,db)
         mysqlm.connect()
