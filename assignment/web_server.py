@@ -134,7 +134,7 @@ def apidata_getdata():
         #    Limit=10
         #)            
 
-        response = table.scan()
+        response = table.scan(ScanIndexForward=False)
 
         items = response['Items']
 
