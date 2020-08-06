@@ -139,7 +139,7 @@ def apidata_getdata():
         #    Limit=10
         #)            
 
-        response = table.query(
+        response = table.scan(
             IndexName="bookingid-datetime_value-index",
             Limit=10
         )
