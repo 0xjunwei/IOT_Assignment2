@@ -84,9 +84,11 @@ def apidata_showbookingid():
 
         table_name = 'grabtable'
         print(f'Querying table : {table_name}')
+        #define connection
         dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
         table = dynamodb.Table(table_name)
 
+        #DK what is this for
         startdate = '2020-07'
 
 
@@ -94,19 +96,22 @@ def apidata_showbookingid():
         if 'getbookingid' in request.form:        
             bookingid = request.form['getbookingid']     
 
+        #Querying from the table
         response = table.query(
             #KeyConditionExpression=key('bookingid').eq('0.0')
             #Add the name of the index you want to use in your query
+            #IndexName is something like a primary key
             IndexName="bookingid-datetime_value-index",
             KeyConditionExpression=Key('bookingid').eq(bookingid),
             ScanIndexForward=False,
             Limit=10
         )
 
+
         items = response['Items']
 
         n=10 #limit to last 10 items
-        data = items[:n]
+        data = items[:n] #slicing 
         data_reversed = data[::-1]
 
         return jsonify(json.loads(jsonc.data_to_json(data_reversed)))
