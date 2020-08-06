@@ -134,7 +134,7 @@ def apidata_getdata():
         #    Limit=10
         #)            
 
-        response = table.scan(
+        response = table.query(
             IndexName="bookingid-datetime_value-index",
             Limit=10
         )
@@ -143,10 +143,10 @@ def apidata_getdata():
 
         n=10 # limit to last 10 items
         data = items[:n]
-        #data_reversed = data[::-1]
+        data_reversed = data[::-1]
         #print(data_reversed)
         #print( (json.loads(jsonc.data_to_json(data_reversed)))
-        return jsonify(json.loads(jsonc.data_to_json(data)))
+        return jsonify(json.loads(jsonc.data_to_json(data_reversed)))
     except:
         print(sys.exc_info()[0])
         print(sys.exc_info()[1])
