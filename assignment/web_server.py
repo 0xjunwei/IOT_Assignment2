@@ -139,8 +139,10 @@ def apidata_getdata():
         #    Limit=10
         #)            
 
-        response = table.scan(
-            IndexName="bookingid-datetime_value-index",
+        response = table.query(
+            IndexName="sort-datetime_value-index",
+            KeyConditionExpression=Key('sort').eq('1'),
+            ScanIndexForward=False,
             Limit=10
         )
 
