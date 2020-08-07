@@ -28,6 +28,7 @@ def getData(gcc,datetime_start,my_rpi):
                     from datetime import datetime
                     now = datetime.now() # current date and time
                     datetime_value = now.strftime("%Y-%m-%d %H:%M:%S")
+                    r['sort'] = '1'
                     r['id'] = str(uuid)
                     r['datetime_value'] = datetime_value
                     print(r)
