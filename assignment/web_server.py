@@ -218,9 +218,17 @@ def apidata_register():
         my_rpi.configureEndpoint(host, 8883)
         my_rpi.configureCredentials(rootCAPath, privateKeyPath, certificatePath)
 
-        r = { "username": username, "email": email, "number": number, "password": password, 'role': role }   
+        usersinfo = {}
+        usersinfo['username'] = username
+        usersinfo['email'] = email
+        usersinfo['number'] = number
+        usersinfo['password'] = password
+        usersinfo['role'] = role
 
-        my_rpi.publish("iot/users", json.dumps(r), 1)
+        #r = { "username": username, "email": email, "number": number, "password": password, 'role': role }   
+
+        my_rpi.publish("iot/users", json.dumps(usersinfo), 1)
+        #my_rpi.publish("iot/users", json.dumps(r), 1)
 
         #if (userregister):
         session['username'] = username
