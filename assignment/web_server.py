@@ -138,7 +138,7 @@ def apidata_getdata():
         #    ScanIndexForward=False,
         #    Limit=10
         #)            
-
+        #to pull
         response = table.query(
             IndexName="sort-datetime_value-index",
             KeyConditionExpression=Key('sort').eq('1'),
