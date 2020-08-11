@@ -349,6 +349,11 @@ def logout():
 def register():
     return render_template('register.html')
 
+@app.route("/facerecog")
+def facerecog():
+    return render_template('facerecog.html')
+
+
 @app.route("/speedcheck")
 def speedcheck():
     if 'username' in session:
