@@ -349,8 +349,8 @@ def logout():
 def register():
     return render_template('register.html')
 
-@app.route("/facerecog")
-def facerecog():
+@app.route("/facialrecog")
+def facialrecog():
     return render_template('facerecog.html')
 
 
