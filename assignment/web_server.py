@@ -211,25 +211,29 @@ def apidata_register():
             cpassword = request.form['cpassword']
 
         my_rpi = AWSIoTMQTTClient("registerUser")
+        
         host = "a19dfxc0pabiyn-ats.iot.us-east-1.amazonaws.com"
         rootCAPath = "certs/rootca.pem"
         certificatePath = "certs/users-certificate.pem.crt"
         privateKeyPath = "certs/users-private.pem.key"
         my_rpi.configureEndpoint(host, 8883)
         my_rpi.configureCredentials(rootCAPath, privateKeyPath, certificatePath)
-
+        my_rpi.connect()
         usersinfo = {}
         usersinfo['username'] = username
         usersinfo['email'] = email
         usersinfo['number'] = number
         usersinfo['password'] = password
         usersinfo['role'] = role
-
+        print(usersinfo)
         #r = { "username": username, "email": email, "number": number, "password": password, 'role': role }   
 
-        my_rpi.publish("iot/users", json.dumps(usersinfo), 1)
+        success = my_rpi.publish("iot/users", json.dumps(usersinfo), 1)
         #my_rpi.publish("iot/users", json.dumps(r), 1)
-
+        if success:
+            print("success")
+        else:
+            print("fail")
         #if (userregister):
         session['username'] = username
         return redirect(url_for('dashboard', username = username), code = 303)
