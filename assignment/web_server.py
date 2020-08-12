@@ -10,7 +10,7 @@ import argparse
 import sys
 import requests
 import time
-import winsound
+#import winsound
 
 import boto3
 from boto3.dynamodb.conditions import Key, Attr
@@ -70,7 +70,7 @@ def apidata_sendalert():
         
         telegram_bot(message)
 
-        winsound.Beep(frequency, duration)
+        #winsound.Beep(frequency, duration)
         return redirect("/dashboard", code=303) #redirect to a page
     except:
         print(sys.exc_info()[0])
@@ -83,14 +83,10 @@ def apidata_showbookingid():
     try:
 
         table_name = 'grabtable'
-        print(f'Querying table : {table_name}')
+        print(f"Querying table : {table_name}")
         #define connection
         dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
         table = dynamodb.Table(table_name)
-
-        #DK what is this for
-        startdate = '2020-07'
-
 
         bookingid = '0.0'
         if 'getbookingid' in request.form:        
@@ -168,8 +164,6 @@ def apidata_login():
         dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
         table = dynamodb.Table(table_name)
 
-        startdate = '2020-07'
-
         # Output message if error
         name = 'username'
         msg = ''
@@ -178,7 +172,14 @@ def apidata_login():
             username = request.form['username']
             password = request.form['password']
 
-        if (userlogin):
+        response = table.query(
+            IndexName='username-index',
+            KeyConditionExpression=Key('username').eq(username),
+            ProjectionExpression="username, password"
+
+        )
+
+        if (username):
             session['username'] = username
             return redirect(url_for('dashboard', username = username), code = 303)
         else:
@@ -225,7 +226,6 @@ def apidata_register():
         usersinfo['number'] = number
         usersinfo['password'] = password
         usersinfo['role'] = role
-        print(usersinfo)
         #r = { "username": username, "email": email, "number": number, "password": password, 'role': role }   
 
         success = my_rpi.publish("iot/users", json.dumps(usersinfo), 1)
@@ -245,72 +245,72 @@ def apidata_register():
         print(sys.exc_info()[0])
         print(sys.exc_info()[1]) 
 
-# route to handle the profile
-@app.route("/api/profile",methods=['GET', 'POST'])
-def apidata_profile():
-    try:
-        # Output message if error
-        name = username
-        msg = ''
-        role = 'analyst'
-        # Check 
-        if 'username' in request.form and 'email' in request.form and 'number' in request.form and 'password' in request.form and 'cpassword' in request.form:
-            username = request.form['username']
-            email = request.form['email']
-            number = request.form['number']
-            password = request.form['password']
-            cpassword = request.form['cpassword']
+# # route to handle the profile
+# @app.route("/api/profile",methods=['GET', 'POST'])
+# def apidata_profile():
+#     try:
+#         # Output message if error
+#         name = username
+#         msg = ''
+#         role = 'analyst'
+#         # Check 
+#         if 'username' in request.form and 'email' in request.form and 'number' in request.form and 'password' in request.form and 'cpassword' in request.form:
+#             username = request.form['username']
+#             email = request.form['email']
+#             number = request.form['number']
+#             password = request.form['password']
+#             cpassword = request.form['cpassword']
 
-        u='iotuser';pw='iotpassword';h='localhost';db='iotdatabase'
-        mysqlm = MySQLManager(u,pw,h,db)
-        mysqlm.connect()
+#         u='iotuser';pw='iotpassword';h='localhost';db='iotdatabase'
+#         mysqlm = MySQLManager(u,pw,h,db)
+#         mysqlm.connect()
             
-        sql="UPDATE users SET %(username)s, %(email)s, %(number)s, %(password)s, %(role)s WHERE name = username"
-        updatedetails = {"username": username, "email": email, "number": number, "password": password, "role": role}            
-        userupdate = mysqlm.insertupdatedelete(QUERYTYPE_UPDATE,sql,updatedetails)
-        mysqlm.disconnect()
+#         sql="UPDATE users SET %(username)s, %(email)s, %(number)s, %(password)s, %(role)s WHERE name = username"
+#         updatedetails = {"username": username, "email": email, "number": number, "password": password, "role": role}            
+#         userupdate = mysqlm.insertupdatedelete(QUERYTYPE_UPDATE,sql,updatedetails)
+#         mysqlm.disconnect()
 
-        if (userupdate):
-            session['username'] = username
-            return redirect(url_for('dashboard', username = username), code = 303)
-        else:
-            return render_template('profile.html', msg = "Unable to update, please try again")
+#         if (userupdate):
+#             session['username'] = username
+#             return redirect(url_for('dashboard', username = username), code = 303)
+#         else:
+#             return render_template('profile.html', msg = "Unable to update, please try again")
         
-    except:
-        print(sys.exc_info()[0])
-        print(sys.exc_info()[1]) 
+#     except:
+#         print(sys.exc_info()[0])
+#         print(sys.exc_info()[1]) 
     
 # this is to handle the dashboard data
-@app.route("/api/getdashboarddata",methods=['GET', 'POST'])
-def apidata_getdashboarddata():
-    try:
+# @app.route("/api/getdashboarddata",methods=['GET', 'POST'])
+# def apidata_getdashboarddata():
+#     try:
         
 
-        u='iotuser';pw='iotpassword';h='localhost';db='iotdatabase'
-        mysqlm = MySQLManager(u,pw,h,db)
-        mysqlm.connect()
+#         u='iotuser';pw='iotpassword';h='localhost';db='iotdatabase'
+#         mysqlm = MySQLManager(u,pw,h,db)
+#         mysqlm.connect()
 
-        sql=f"SELECT COUNT(DISTINCT bookingid) as dashboarddata FROM iotapp"
-        datasql = {}            
-        driver_data = mysqlm.fetch_fromdb_as_list(sql,datasql)
+#         sql=f"SELECT COUNT(DISTINCT bookingid) as dashboarddata FROM iotapp"
+#         datasql = {}            
+#         driver_data = mysqlm.fetch_fromdb_as_list(sql,datasql)
 
-        sql=f"SELECT IFNULL(AVG(speedkmhour),0) as dashboarddata FROM iotapp WHERE timestamp_value = CURRENT_TIMESTAMP"
-        datasql = {}            
-        average_speed_data = mysqlm.fetch_fromdb_as_list(sql,datasql)
+#         sql=f"SELECT IFNULL(AVG(speedkmhour),0) as dashboarddata FROM iotapp WHERE timestamp_value = CURRENT_TIMESTAMP"
+#         datasql = {}            
+#         average_speed_data = mysqlm.fetch_fromdb_as_list(sql,datasql)
 
-        sql=f"SELECT IFNULL(MAX(speedkmhour),0) as dashboarddata FROM iotapp WHERE timestamp_value = CURRENT_TIMESTAMP"
-        datasql = {}            
-        max_speed = mysqlm.fetch_fromdb_as_list(sql,datasql)
+#         sql=f"SELECT IFNULL(MAX(speedkmhour),0) as dashboarddata FROM iotapp WHERE timestamp_value = CURRENT_TIMESTAMP"
+#         datasql = {}            
+#         max_speed = mysqlm.fetch_fromdb_as_list(sql,datasql)
 
-        dashboarddata = {'driver_data': driver_data, 'average_speed_data': average_speed_data, 'max_speed': max_speed}
+#         dashboarddata = {'driver_data': driver_data, 'average_speed_data': average_speed_data, 'max_speed': max_speed}
 
-        mysqlm.disconnect()
+#         mysqlm.disconnect()
             
-        return dashboarddata
+#         return dashboarddata
 
-    except:
-        print(sys.exc_info()[0])
-        print(sys.exc_info()[1])     
+#     except:
+#         print(sys.exc_info()[0])
+#         print(sys.exc_info()[1])     
 
 
 @app.route("/multiple")
@@ -370,7 +370,7 @@ def dashboard():
 if __name__ == '__main__':
    try:
         host = '0.0.0.0'
-        port = 80
+        port = 5000
         parser = argparse.ArgumentParser()        
         parser.add_argument('port',type=int)
         
