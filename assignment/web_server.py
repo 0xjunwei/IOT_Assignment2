@@ -281,36 +281,67 @@ def apidata_register():
 #         print(sys.exc_info()[1]) 
     
 # this is to handle the dashboard data
+@app.route("/api/getdashboarddata",methods=['GET', 'POST'])
+def apidata_getdashboarddata():
+    try:
+        
+        u='iotuser';pw='iotpassword';h='localhost';db='iotdatabase'
+        mysqlm = MySQLManager(u,pw,h,db)
+        mysqlm.connect()
+
+        
+
+        table_name = 'grabtable'
+        print(f"Querying table {table_name}")
+        dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+        table = dynamodb.Table(table_name)
+
+        response = table.scan(AttributesToGet=['bookingid'])
+        lst = []
+        for i in response['Items']:
+            lst.append(i['bookingid'])
+        unique_booking = set(lst)
+        unique_booking_count = len(unique_booking)
+        print(unique_booking_count)
+
+        sql=f"SELECT IFNULL(AVG(speedkmhour),0) as dashboarddata FROM iotapp WHERE timestamp_value = CURRENT_TIMESTAMP"
+        datasql = {}            
+        average_speed_data = mysqlm.fetch_fromdb_as_list(sql,datasql)
+
+        sql=f"SELECT IFNULL(MAX(speedkmhour),0) as dashboarddata FROM iotapp WHERE timestamp_value = CURRENT_TIMESTAMP"
+        datasql = {}            
+        max_speed = mysqlm.fetch_fromdb_as_list(sql,datasql)
+        r = {}
+        r['driver_data'] = unique_booking_count
+        r['average_speed_data'] = unique_booking_count
+        r['max_speed'] = unique_booking_count
+        #dashboarddata = {'driver_data': unique_booking_count, 'average_speed_data': average_speed_data, 'max_speed': max_speed}
+
+        mysqlm.disconnect()
+
+        return jsonify(json.loads(jsonc.data_to_json(r)))
+        #return dashboarddata
+
+    except:
+        print(sys.exc_info()[0])
+        print(sys.exc_info()[1])     
+
 # @app.route("/api/getdashboarddata",methods=['GET', 'POST'])
 # def apidata_getdashboarddata():
 #     try:
+#         
+    
+
+
+#         #items = response['Items']
+
+#         #n=10 # limit to last 10 items
+#         dashboarddata = {'driver_data': unique_booking_count, 'average_speed_data': unique_booking_count, 'max_speed': unique_booking_count}
         
-
-#         u='iotuser';pw='iotpassword';h='localhost';db='iotdatabase'
-#         mysqlm = MySQLManager(u,pw,h,db)
-#         mysqlm.connect()
-
-#         sql=f"SELECT COUNT(DISTINCT bookingid) as dashboarddata FROM iotapp"
-#         datasql = {}            
-#         driver_data = mysqlm.fetch_fromdb_as_list(sql,datasql)
-
-#         sql=f"SELECT IFNULL(AVG(speedkmhour),0) as dashboarddata FROM iotapp WHERE timestamp_value = CURRENT_TIMESTAMP"
-#         datasql = {}            
-#         average_speed_data = mysqlm.fetch_fromdb_as_list(sql,datasql)
-
-#         sql=f"SELECT IFNULL(MAX(speedkmhour),0) as dashboarddata FROM iotapp WHERE timestamp_value = CURRENT_TIMESTAMP"
-#         datasql = {}            
-#         max_speed = mysqlm.fetch_fromdb_as_list(sql,datasql)
-
-#         dashboarddata = {'driver_data': driver_data, 'average_speed_data': average_speed_data, 'max_speed': max_speed}
-
-#         mysqlm.disconnect()
-            
 #         return dashboarddata
-
 #     except:
 #         print(sys.exc_info()[0])
-#         print(sys.exc_info()[1])     
+#         print(sys.exc_info()[1])
 
 
 @app.route("/multiple")
