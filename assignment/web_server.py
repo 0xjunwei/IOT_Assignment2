@@ -304,6 +304,7 @@ def apidata_getdashboarddata():
         unique_booking_count = len(unique_booking)
         print(unique_booking_count)
 
+        
         sql=f"SELECT IFNULL(AVG(speedkmhour),0) as dashboarddata FROM iotapp WHERE timestamp_value = CURRENT_TIMESTAMP"
         datasql = {}            
         average_speed_data = mysqlm.fetch_fromdb_as_list(sql,datasql)
