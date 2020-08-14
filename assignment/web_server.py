@@ -289,7 +289,7 @@ def apidata_getdashboarddata():
         dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
         table = dynamodb.Table(table_name)
 
-        response = table.scan(AttributesToGet=['bookingid'])
+        response = table.scan(AttributesToGet=['bookingid', 'speedkmhour'])
 
         
         lst = []
@@ -420,8 +420,8 @@ def logout():
 def register():
     return render_template('register.html')
 
-@app.route("/facialrecog")
-def facialrecog():
+@app.route("/facialRecog")
+def facialRecog():
     return render_template('facerecog.html')
 
 
