@@ -53,12 +53,12 @@
 
       function getDashboardData(){
         jQuery.ajax({
-            url: "/api/getdashboarddata" ,
+            url: "/api/getbookingdashboarddata" ,
             type: 'POST',            
             success: function(ndata){ 
-                drivers = ndata.driver_data[0].dashboarddata
-                average_speed = ndata.average_speed_data[0].dashboarddata
-                max_speed = ndata.max_speed[0].dashboarddata
+              drivers = ndata.driver_data
+              average_speed = ndata.average_speed
+              max_speed = ndata.max_speed
                 if (max_speed >= current_max_speed) {
                     current_max_speed = max_speed
                   }
