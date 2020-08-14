@@ -352,7 +352,7 @@ def apidata_getbookingdashboarddata():
         
         max_speed_value = max(max_speed)
         aver_speed_value = (sum(max_speed)/len(max_speed))
-
+        aver_speed_value = round(aver_speed_value, 2)
 
         r = {}
         r['driver_data'] = unique_booking_count
