@@ -172,18 +172,20 @@ def apidata_login():
             username = request.form['username']
             password = request.form['password']
 
-        response = table.query(
-            IndexName='username-index',
-            KeyConditionExpression=Key('username').eq(username),
-            ProjectionExpression="username, password"
+        logindetails = {"username": username, "password": password}
+        try:
+            
+            response = table.get_item(Key= {'username': username, 'password': password})
 
-        )
-
-        if (username):
-            session['username'] = username
-            return redirect(url_for('dashboard', username = username), code = 303)
-        else:
-            return render_template('login.html', msg = "Invalid Credentials")
+            items = response['Item']
+            print(items)
+        
+            if (items):
+                session['username'] = username
+                return redirect(url_for('dashboard', username = username), code = 303)
+        except Exception as e:
+            print(e)
+            return render_template('login.html', msg = "Username or password is incorrect, please try again.")
         
     except:
         print(sys.exc_info()[0])
