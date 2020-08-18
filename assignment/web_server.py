@@ -172,7 +172,6 @@ def apidata_login():
             username = request.form['username']
             password = request.form['password']
 
-        logindetails = {"username": username, "password": password}
         try:
             
             response = table.get_item(Key= {'username': username, 'password': password})
