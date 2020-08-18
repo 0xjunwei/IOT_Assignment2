@@ -283,36 +283,107 @@ def apidata_register():
 #         print(sys.exc_info()[1]) 
     
 # this is to handle the dashboard data
+@app.route("/api/getdashboarddata",methods=['GET', 'POST'])
+def apidata_getdashboarddata():
+    try:
+        table_name = 'grabtable'
+        print(f"Querying table {table_name}")
+        dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+        table = dynamodb.Table(table_name)
+
+        response = table.scan(AttributesToGet=['bookingid', 'speedkmhour'])
+
+        
+        lst = []
+        for i in response['Items']:
+            lst.append(i['bookingid'])
+        unique_booking = set(lst)
+        unique_booking_count = len(unique_booking)
+        print(unique_booking_count)
+
+        max_speed = []
+        for i in response['Items']:
+            max_speed.append(i['speedkmhour'])
+        
+        max_speed_value = max(max_speed)
+
+
+        r = {}
+        r['driver_data'] = unique_booking_count
+        r['max_speed'] = max_speed_value
+     
+        return jsonify(json.loads(jsonc.data_to_json(r)))
+        #return dashboarddata
+
+    except:
+        print(sys.exc_info()[0])
+        print(sys.exc_info()[1])     
+
+
+@app.route("/api/getbookingdashboarddata",methods=['GET', 'POST'])
+def apidata_getbookingdashboarddata():
+    try:
+        table_name = 'grabtable'
+        print(f"Querying table {table_name}")
+        dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+        table = dynamodb.Table(table_name)
+
+        bookingid = '0.0'
+        if 'getbookingid' in request.form:        
+            bookingid = request.form['getbookingid']
+        response = table.scan(AttributesToGet=['bookingid', 'speedkmhour'])
+        response2 = table.query(
+            #KeyConditionExpression=key('bookingid').eq('0.0')
+            #Add the name of the index you want to use in your query
+            #IndexName is something like a primary key
+            IndexName="bookingid-datetime_value-index",
+            KeyConditionExpression=Key('bookingid').eq(bookingid),
+            ScanIndexForward=False,
+            Limit=10
+        )
+        lst = []
+        for i in response['Items']:
+            lst.append(i['bookingid'])
+        unique_booking = set(lst)
+        unique_booking_count = len(unique_booking)
+        print(unique_booking_count)
+
+        max_speed = []
+        for i in response2['Items']:
+            max_speed.append(i['speedkmhour'])
+        
+        max_speed_value = max(max_speed)
+        aver_speed_value = (sum(max_speed)/len(max_speed))
+        aver_speed_value = round(aver_speed_value, 2)
+
+        r = {}
+        r['driver_data'] = unique_booking_count
+        r['average_speed'] = aver_speed_value
+        r['max_speed'] = max_speed_value
+     
+        return jsonify(json.loads(jsonc.data_to_json(r)))
+        #return dashboarddata
+
+    except:
+        print(sys.exc_info()[0])
+        print(sys.exc_info()[1])
+
 # @app.route("/api/getdashboarddata",methods=['GET', 'POST'])
 # def apidata_getdashboarddata():
 #     try:
+#         
+    
+
+
+#         #items = response['Items']
+
+#         #n=10 # limit to last 10 items
+#         dashboarddata = {'driver_data': unique_booking_count, 'average_speed_data': unique_booking_count, 'max_speed': unique_booking_count}
         
-
-#         u='iotuser';pw='iotpassword';h='localhost';db='iotdatabase'
-#         mysqlm = MySQLManager(u,pw,h,db)
-#         mysqlm.connect()
-
-#         sql=f"SELECT COUNT(DISTINCT bookingid) as dashboarddata FROM iotapp"
-#         datasql = {}            
-#         driver_data = mysqlm.fetch_fromdb_as_list(sql,datasql)
-
-#         sql=f"SELECT IFNULL(AVG(speedkmhour),0) as dashboarddata FROM iotapp WHERE timestamp_value = CURRENT_TIMESTAMP"
-#         datasql = {}            
-#         average_speed_data = mysqlm.fetch_fromdb_as_list(sql,datasql)
-
-#         sql=f"SELECT IFNULL(MAX(speedkmhour),0) as dashboarddata FROM iotapp WHERE timestamp_value = CURRENT_TIMESTAMP"
-#         datasql = {}            
-#         max_speed = mysqlm.fetch_fromdb_as_list(sql,datasql)
-
-#         dashboarddata = {'driver_data': driver_data, 'average_speed_data': average_speed_data, 'max_speed': max_speed}
-
-#         mysqlm.disconnect()
-            
 #         return dashboarddata
-
 #     except:
 #         print(sys.exc_info()[0])
-#         print(sys.exc_info()[1])     
+#         print(sys.exc_info()[1])
 
 
 @app.route("/multiple")
@@ -351,8 +422,8 @@ def logout():
 def register():
     return render_template('register.html')
 
-@app.route("/facialrecog")
-def facialrecog():
+@app.route("/facialRecog")
+def facialRecog():
     return render_template('facerecog.html')
 
 

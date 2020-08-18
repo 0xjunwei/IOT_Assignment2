@@ -55,9 +55,14 @@
         url: "/api/getdashboarddata",
         type: 'POST',
         success: function (ndata) {
-          drivers = ndata.driver_data[0].dashboarddata
-          average_speed = ndata.average_speed_data[0].dashboarddata
-          max_speed = ndata.max_speed[0].dashboarddata
+          // drivers = ndata.driver_data[0].dashboarddata
+          // average_speed = ndata.average_speed_data[0].dashboarddata
+          // max_speed = ndata.max_speed[0].dashboarddata
+
+          drivers = ndata.driver_data
+
+          max_speed = ndata.max_speed
+
           if (max_speed >= current_max_speed) {
             current_max_speed = max_speed
           }
@@ -65,16 +70,19 @@
             current_max_speed = current_max_speed
           }
           current_max_speed = Math.round(current_max_speed)
-          displayConnected(drivers, average_speed, current_max_speed)
+          displayConnected(drivers, current_max_speed)
 
         } // end of success
       }); // end of ajax
     } // end of getDashboardData
 
-    function displayConnected(drivers, average_speed, max_speed) {
+    function displayConnected(drivers, max_speed) {
       document.getElementById("drivers").innerHTML = drivers;
-      document.getElementById("average_speed").innerHTML = average_speed;
       document.getElementById("max_speed").innerHTML = max_speed + " KM/H";
+    }
+    function appendAverage(average_speed) {
+      document.getElementById("average_speed").innerHTML = average_speed + " KM/H";
+
     }
 
     function googlecharts_is_ready() {
@@ -131,77 +139,161 @@
     function createDataTableForChart(newdata, newdatalength) {
       graphdata = new google.visualization.DataTable();
 
-
-      var displaybookingid = [];
+      var shownBooking = [];
       graphdata.addColumn('string', 'Time');
-      //graphdata.addColumn('number', 'Speed');
 
       currentrow = 0;
       speed1 = 0;
       speed2 = 0;
       speed3 = 0;
+      speed4 = 0;
+      speed5 = 0;
 
       for (i in newdata) {
-        speed = newdata[i].speedkmhour;
+
+        speed = newdata[i].speedkmhour
         datetime = newdata[i].datetime_value;
         jsdatetime = new Date(Date.parse(datetime));
-        bookingid = newdata[i].bookingid
+        bookingid = newdata[i].bookingid;
         jstime = jsdatetime.toLocaleTimeString();
+        //Start of showing 5 line graph code
+        if (shownBooking.includes(bookingid)) {
+          j = shownBooking.indexOf(bookingid);
+          switch (j) {
+            case 0:
+              if (shownBooking.length == 1) {
+                graphdata.addRows([[jstime, speed]])
+                speed1 = speed;
+              } else if (shownBooking.length == 2) {
+                graphdata.addRows([[jstime, speed, null]])
+                speed1 = speed;
+              } else if (shownBooking.length == 3) {
+                graphdata.addRows([[jstime, speed, null, null]])
+                speed1 = speed;
+              } else if (shownBooking.length == 4) {
+                graphdata.addRows([[jstime, speed, null, null, null]])
+                speed1 = speed;
+              } else {
+                graphdata.addRows([[jstime, speed, null, null, null, null]])
+                speed1 = speed;
+              }
+              currentrow++
+              break;
+            case 1:
+              if (shownBooking.length == 2) {
+                graphdata.addRows([[jstime, null, speed]])
+                speed2 = speed;
+              } else if (shownBooking.length == 3) {
+                graphdata.addRows([[jstime, null, speed, null]])
+                speed2 = speed;
+              } else if (shownBooking.length == 4) {
+                graphdata.addRows([[jstime, null, speed, null, null]])
+                speed2 = speed;
+              } else {
+                graphdata.addRows([[jstime, null, speed, null, null, null]])
+                speed2 = speed;
+              }
+              currentrow++
+              break;
+            case 2:
+              if (shownBooking.length == 3) {
+                graphdata.addRows([[jstime, null, null, speed]])
+                speed3 = speed;
+              } else if (shownBooking.length == 4) {
+                graphdata.addRows([[jstime, null, null, speed, null]])
+                speed3 = speed;
+              } else {
+                graphdata.addRows([[jstime, null, null, speed, null, null]])
+                speed3 = speed;
+              }
+              currentrow++
+              break;
+            case 3:
+              if (shownBooking.length == 4) {
+                graphdata.addRows([[jstime, null, null, null, speed]])
+                speed4 = speed;
+              } else {
+                graphdata.addRows([[jstime, null, null, null, speed, null]])
+                speed4 = speed;
+              }
+              currentrow++
+              break;
+            case 4:
+              graphdata.addRows([[jstime, null, null, null, null, speed]])
+              speed5 = speed;
+              currentrow++
+              break;
+            default:
+              break;
+            //dk do what yet
+          }
 
-        if (displaybookingid.includes(bookingid)) {
-          j = displaybookingid.indexOf(bookingid);
-          if (j == 0) {
-            if (displaybookingid.length == 1) {
-              graphdata.addRows([[jstime, speed]])
-            }
-            else if (displaybookingid.length == 2) {
-              graphdata.addRows([[jstime, speed, null]])
-            }
-            else {
-              graphdata.addRows([[jstime, speed, null, null]])
-            }
-            currentrow++
-          }
-          else if (j == 1) {
-            if (displaybookingid.length == 2) {
-              graphdata.addRows([[jstime, null, speed]])
-            }
-            else if (displaybookingid.length == 3) {
-              graphdata.addRows([[jstime, null, speed, null]])
-            }
-            currentrow++
-          }
-          else {
-            graphdata.addRows([[jstime, null, null, speed]])
-            currentrow++
-          }
         }
         else {
-          displaybookingid.push(bookingid)
-          j = displaybookingid.indexOf(bookingid)
-          if (j == 0) {
-            graphdata.addColumn('number', bookingid);
-            graphdata.addRows([[jstime, speed]])
-            currentrow++
+          shownBooking.push(bookingid)
+          j = shownBooking.indexOf(bookingid)
+          switch (j) {
+            case 0:
+              graphdata.addColumn('number', bookingid);
+              graphdata.addRows([[jstime, speed]])
+              speed1 = speed;
+              currentrow++
+              break;
+            case 1:
+              graphdata.addColumn('number', bookingid);
+              graphdata.addRows([[jstime, null, speed]])
+              speed2 = speed;
+              currentrow++
+              break;
+            case 2:
+              graphdata.addColumn('number', bookingid);
+              graphdata.addRows([[jstime, null, null, speed]])
+              speed3 = speed;
+              currentrow++
+              break;
+            case 3:
+              graphdata.addColumn('number', bookingid);
+              graphdata.addRows([[jstime, null, null, null, speed]])
+              speed4 = speed;
+              currentrow++
+              break;
+            case 4:
+              graphdata.addColumn('number', bookingid);
+              graphdata.addRows([[jstime, null, null, null, null, speed]])
+              speed5 = speed;
+              currentrow++
+              break;
+            default:
+              break;
+            //no clue do what yet
           }
-          else if (j == 1) {
-            graphdata.addColumn('number', bookingid);
-            graphdata.addRows([[jstime, null, speed]])
-            currentrow++
-          }
-          else {
-            graphdata.addColumn('number', bookingid);
-            graphdata.addRows([[jstime, null, null, speed]])
-            currentrow++
-          }
-
         }
+        //End of 5 line graph code
+
+
+
+      }
+      //to calculate Average Speed below
+      if (shownBooking.length == 1) {
+        appendAverage(Math.round(speed1));
+      } else if (shownBooking.length == 2) {
+        average_speed = (speed1 + speed2) / 2
+        average_speed = Math.round(average_speed)
+        appendAverage(average_speed)
+      } else if (shownBooking.length = 3) {
+        average_speed = (speed1 + speed2 + speed3) / 3
+        average_speed = Math.round(average_speed)
+        appendAverage(average_speed)
+      } else if (shownBooking.length = 4) {
+        average_speed = (speed1 + speed2 + speed3 + speed4) / 4
+        average_speed = Math.round(average_speed)
+        appendAverage(average_speed)
+      } else {
+        average_speed = (speed1 + speed2 + speed3 + speed4 + speed5) / 5
+        average_speed = Math.round(average_speed)
+        appendAverage(average_speed)
       }
 
-      //null is the position of the booking
-
-      //graphdata.addRows([[jstime,speed]]);
-      //currentrow++
       graphdata.removeRows(0, currentrow - 10)
 
       return graphdata
@@ -270,7 +362,7 @@
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('facialrecog') }}">
+              <a class="nav-link" href="{{ url_for('facialRecog') }}">
                 <i class="ni ni-single-02 text-yellow"></i>
                 <span class="nav-link-text">Face Recognition</span>
               </a>
