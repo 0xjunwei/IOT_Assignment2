@@ -17,7 +17,7 @@ from boto3.dynamodb.conditions import Key, Attr
 import json
 
 from datetime import datetime
-
+import pickle
 from IOTAssignmentUtilitiesdorachua.MySQLManager import MySQLManager
 from IOTAssignmentUtilitiesdorachua.MySQLManager import QUERYTYPE_DELETE, QUERYTYPE_INSERT, QUERYTYPE_UPDATE
 
@@ -25,10 +25,16 @@ from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 
 import jsonconverter as jsonc
 
+
+import pandas as pd    
+import numpy as np 
+from sklearn.decomposition import PCA
+
 app = Flask(__name__)
 
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
+model = pickle.load(open('grab_model.pkl', 'rb'))
 
 # telegram bot to send alerts to the analyst
 def telegram_bot(bot_message):
@@ -115,6 +121,8 @@ def apidata_showbookingid():
     except:
         print(sys.exc_info()[0])
         print(sys.exc_info()[1])
+
+
 
 
 # retrieves the data from db and sends it to a line graph and table.
@@ -340,6 +348,9 @@ def apidata_getbookingdashboarddata():
             ScanIndexForward=False,
             Limit=10
         )
+
+        
+
         lst = []
         for i in response['Items']:
             lst.append(i['bookingid'])
@@ -350,18 +361,77 @@ def apidata_getbookingdashboarddata():
         max_speed = []
         for i in response2['Items']:
             max_speed.append(i['speedkmhour'])
+
+        items = response2['Items']
+        predicted = apidata_getPredict(items)
         
+        predicted = predicted.astype(int)
+        prediction = predicted[0]
         max_speed_value = max(max_speed)
         aver_speed_value = (sum(max_speed)/len(max_speed))
         aver_speed_value = round(aver_speed_value, 2)
 
         r = {}
-        r['driver_data'] = unique_booking_count
+        r['predict'] = prediction
         r['average_speed'] = aver_speed_value
         r['max_speed'] = max_speed_value
      
         return jsonify(json.loads(jsonc.data_to_json(r)))
         #return dashboarddata
+
+    except:
+        print(sys.exc_info()[0])
+        print(sys.exc_info()[1])
+
+def apidata_getPredict(items):
+    try:
+
+        df = pd.DataFrame(items, dtype=float)
+        df['bearing'] = (df['bearing'] - df['bearing'].shift())
+        df['bearing'] = df['bearing'].fillna(value=0)
+        conv_bearings = [1 if values > 45 else 2 if values < -45 else 0 for values in df.bearing]
+        df['bearing'] = conv_bearings
+
+        left_turn = [1 if values == 2 else 0 for values in df.bearing]
+        df['left_turn'] = left_turn
+
+        right_turn = [1 if values == 1 else 0 for values in df.bearing]
+        df['right_turn'] = right_turn
+
+        
+
+        pca_gyro = PCA(n_components=1).fit(df.loc[:, ['gyro_x', 'gyro_y', 'gyro_z']])
+        pca_gyro.explained_variance_ratio_
+
+        # transform triaxial gyro readings into its first principal components
+        # need change gyro readings into 
+        df['gyro'] = pca_gyro.transform(df.loc[:, ('gyro_x', 'gyro_y', 'gyro_z')])
+        df.drop(['gyro_x', 'gyro_y','gyro_z'], axis=1, inplace=True)
+        df['net_acceleration'] = np.sqrt((df['acceleration_x'] ** 2) + (df['acceleration_y'] ** 2) + (df['acceleration_z'] ** 2))
+        
+        
+        df.sort_values(['bookingid', 'seconds'], ascending=[True, True])
+        
+        
+        
+        df = df.drop(['id', 'speedkmhour', 'datetime_value', 'sort'], axis = 1)
+        #df.apply(pd.to_numeric)
+        #df.astype(float)
+        
+        #df = pd.to_numeric(df['accuracy', 'bookingid', 'seconds', 'acceleration_y', 'acceleration_x', 'acceleration_z', 'speed', 'net_acceleration'])
+        multi = ['min','max', 'mean']
+        speedagg = ['max', 'mean', 'sum']
+        features_data = df.groupby('bookingid', as_index=False).agg({'left_turn' : 'sum' , 'right_turn' : 'sum','gyro': multi,'speed' : speedagg, 'seconds':'max', 'net_acceleration': multi})
+        
+        features_data.columns = features_data.columns.map('_'.join).str.strip('_')
+        
+
+        X = features_data.drop(['bookingid'], axis = 1)
+        
+        result = model.predict(X)
+
+        
+        return result
 
     except:
         print(sys.exc_info()[0])
