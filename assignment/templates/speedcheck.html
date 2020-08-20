@@ -88,8 +88,8 @@
               url: "/api/getdata" ,
               type: 'POST',          
               success: function(ndata, textStatus, xhr){ 
-                  chartdata = ndata.chart_data.data
-                  chartdatalength  = parseInt(ndata.chart_data_length)
+                  chartdata = ndata;
+                  chartdatalength  = chartdata.length;
                   tabledata = createDataTableForTable(chartdata,chartdatalength)          
                   drawDataTable(tabledata,"table_div")
                   

@@ -387,7 +387,6 @@ def apidata_getbookingdashboarddata():
 
 def apidata_getPredict(items):
     try:
-
         df = pd.DataFrame(items, dtype=float)
         df['bearing'] = (df['bearing'] - df['bearing'].shift())
         df['bearing'] = df['bearing'].fillna(value=0)
