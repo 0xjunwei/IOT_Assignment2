@@ -349,8 +349,6 @@ def apidata_getbookingdashboarddata():
             Limit=10
         )
 
-        
-
         lst = []
         for i in response['Items']:
             lst.append(i['bookingid'])
