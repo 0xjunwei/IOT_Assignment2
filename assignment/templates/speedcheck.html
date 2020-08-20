@@ -56,28 +56,28 @@
             url: "/api/getdashboarddata" ,
             type: 'POST',            
             success: function(ndata){ 
-                drivers = ndata.driver_data[0].dashboarddata
-                average_speed = ndata.average_speed_data[0].dashboarddata
-                max_speed = ndata.max_speed[0].dashboarddata
-                if (max_speed >= current_max_speed) {
-                    current_max_speed = max_speed
-                  }
-                else{
-                    current_max_speed = current_max_speed
-                }
-                current_max_speed = Math.round(current_max_speed)
-                displayConnected(drivers, average_speed, current_max_speed)
+              drivers = ndata.driver_data
+              max_speed = ndata.max_speed
+              if (max_speed >= current_max_speed) {
+                current_max_speed = max_speed
+              }
+              else {
+                current_max_speed = current_max_speed
+              }
+              current_max_speed = Math.round(current_max_speed)
+              displayConnected(drivers, current_max_speed)
 
             } // end of success
       }); // end of ajax
     } // end of getDashboardData
 
-      function displayConnected(drivers, average_speed, max_speed){
+      function displayConnected(drivers, max_speed){
         document.getElementById("drivers").innerHTML = drivers;
-        document.getElementById("average_speed").innerHTML = average_speed;
         document.getElementById("max_speed").innerHTML = max_speed + " KM/H";
       }
-    
+      function appendAverage(average_speed) {
+      document.getElementById("average_speed").innerHTML = average_speed + " KM/H";
+      }
       function googlecharts_is_ready(){
       }
 
@@ -111,7 +111,8 @@
           currentrow = 0
           
           for (i in newdata){
-          
+                
+                
                 bookingid = newdata[i].bookingid
                 speed = newdata[i].speedkmhour
                 seconds =  parseInt(newdata[i].seconds)
@@ -120,7 +121,8 @@
                 datetime = newdata[i].datetime_value;
                 jsdatetime = new Date(Date.parse(datetime)); 
                 strDate = jsdatetime.toLocaleDateString();              
-                jstime = jsdatetime.toLocaleTimeString();                
+                jstime = jsdatetime.toLocaleTimeString();
+                appendAverage(speed)          
                 tabledata.addRows([[bookingid,strDate,jstime,speed, "<form action='{{ url_for('apidata_sendalert') }}' method='POST'><input type='hidden' id='bookingid' name='bookingid' value='" + bookingid + "'><input type='hidden' id='date' name='date' value=" + strDate + "><input type='hidden' id='time' name='time' value=" + jstime + "><input type='hidden' id='speedkmhour' name='speedkmhour' value=" + speed + "><input type='submit' value='Send Alert'></form>"]]);
                 currentrow++
 
