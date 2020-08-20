@@ -52,9 +52,12 @@
       var current_max_speed = 0;
 
       function getDashboardData(){
+        var abookingid;
+        abookingid = $("#getbookingid").val()
         jQuery.ajax({
             url: "/api/getbookingdashboarddata" ,
-            type: 'POST',            
+            type: 'POST',
+            data: {getbookingid: abookingid},       
             success: function(ndata){ 
               predict = ndata.predict
               console.log(predict)
