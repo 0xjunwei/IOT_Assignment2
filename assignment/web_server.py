@@ -535,7 +535,9 @@ def register():
 
 @app.route("/facialRecog")
 def facialRecog():
-    return render_template('facerecog.html')
+    if 'username' in session:
+        username = escape(session['username'])
+    return render_template('facerecog.html', username=username)
 
 
 @app.route("/speedcheck")
