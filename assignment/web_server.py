@@ -20,10 +20,7 @@ from IOTAssignmentUtilitiesdorachua.MySQLManager import MySQLManager
 from IOTAssignmentUtilitiesdorachua.MySQLManager import QUERYTYPE_DELETE, QUERYTYPE_INSERT, QUERYTYPE_UPDATE
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 import jsonconverter as jsonc
-from gevent.pywsgi import WSGIServer
-import gevent
-# import gevent.monkey
-# gevent.monkey.patch_all()
+
 
 
 #import winsound
