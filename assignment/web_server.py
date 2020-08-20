@@ -1,3 +1,7 @@
+import gevent
+import gevent.monkey
+from gevent.pywsgi import WSGIServer
+gevent.monkey.patch_all()
 
 from flask import Flask, render_template, jsonify, request, Response, redirect, url_for, session, escape
 from flask_cors import CORS
