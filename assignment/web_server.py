@@ -429,7 +429,7 @@ def apidata_getPredict(items):
         multi = ['min', 'max', 'mean']
         speedagg = ['max', 'mean', 'sum']
         features_data = df.groupby('bookingid', as_index=False).agg(
-            {'left_turn' : 'sum' , 'right_turn' : 'sum','gyro': multi,'Speed' : speedagg, 'second':'max', 'acc_gyro_x': 'mean', 'acc_gyro_y': 'mean', 'acc_gyro_z': 'mean', 'acc_gyro_xy': 'mean', 'acc_gyro_xz': 'mean', 'acc_gyro_yz': 'mean' ,'acc_gyro_xyz': 'mean', 'acceleration_xy': multi,'net_acceleration': multi})
+            {'left_turn' : 'sum' , 'right_turn' : 'sum','gyro': multi,'speed' : speedagg, 'seconds':'max', 'acc_gyro_x': 'mean', 'acc_gyro_y': 'mean', 'acc_gyro_z': 'mean', 'acc_gyro_xy': 'mean', 'acc_gyro_xz': 'mean', 'acc_gyro_yz': 'mean' ,'acc_gyro_xyz': 'mean', 'acceleration_xy': multi,'net_acceleration': multi})
 
         features_data.columns = features_data.columns.map(
             '_'.join).str.strip('_')
