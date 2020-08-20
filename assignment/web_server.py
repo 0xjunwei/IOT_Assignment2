@@ -1,6 +1,5 @@
 
 from flask import Flask, render_template, jsonify, request, Response, redirect, url_for, session, escape
-from flask_cors import CORS
 import argparse
 import sys
 import requests
@@ -24,13 +23,11 @@ import gevent
 
 #import winsound
 
-
 import pandas as pd
 import numpy as np
 from sklearn.decomposition import PCA
 
 app = Flask(__name__)
-CORS(app)
 
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
@@ -451,6 +448,13 @@ def apidata_getPredict(items):
 #         print(sys.exc_info()[0])
 #         print(sys.exc_info()[1])
 
+# S3 bucket for Facial Recognition
+BUCKET = 'iot-assignment2-fr'
+location = {'LocationConstraint': 'us-east-1'}
+# Get the images from static/saved_images
+file_path = "../static/saved_images"
+
+
 # Camera API
 # Take Picture using CV2 library
 @app.route("/api/camera", methods=['GET', 'POST'])
@@ -472,10 +476,33 @@ def camera():
         videoCaptureObject.release()
         cv2.destroyAllWindows()
         print('image saved!')
+
     return(path)
 
+
+def uploadToS3(file_path, file_name, bucket_name, location):
+    s3 = boto3.resource('s3')  # Create an S3 resource
+    exists = True
+
+    try:
+        s3.meta.client.head_bucket(Bucket=bucket_name)
+    except botocore.exceptions.ClientError as e:
+        error_code = int(e.response['Error']['Code'])
+        if error_code == 404:
+            exists = False
+
+    if exists == False:
+        s3.create_bucket(Bucket=bucket_name,
+                         CreateBucketConfiguration=location)
+
+    # Upload the file
+    full_path = file_path + "/" + file_name
+    s3.Object(bucket_name, file_name).put(Body=open(full_path, 'rb'))
+    print("File uploaded")
+
+
 # Get Saved images
-@app.route("/api/getImages", methods=['POST'])
+@app.route("/api/getImages", methods=['GET'])
 def getImages():
     from PIL import Image
     import glob
