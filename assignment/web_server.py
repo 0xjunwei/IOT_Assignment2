@@ -1,3 +1,7 @@
+import gevent
+import gevent.monkey
+from gevent.pywsgi import WSGIServer
+gevent.monkey.patch_all()
 
 from flask import Flask, render_template, jsonify, request, Response, redirect, url_for, session, escape
 import argparse
@@ -15,10 +19,7 @@ from IOTAssignmentUtilitiesdorachua.MySQLManager import MySQLManager
 from IOTAssignmentUtilitiesdorachua.MySQLManager import QUERYTYPE_DELETE, QUERYTYPE_INSERT, QUERYTYPE_UPDATE
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 import jsonconverter as jsonc
-from gevent.pywsgi import WSGIServer
-import gevent
-# import gevent.monkey
-# gevent.monkey.patch_all()
+
 
 
 #import winsound
@@ -343,7 +344,6 @@ def apidata_getbookingdashboarddata():
             IndexName="bookingid-datetime_value-index",
             KeyConditionExpression=Key('bookingid').eq(bookingid),
             ScanIndexForward=False,
-            Limit=10
         )
 
         lst = []
@@ -381,7 +381,6 @@ def apidata_getbookingdashboarddata():
 
 def apidata_getPredict(items):
     try:
-
         df = pd.DataFrame(items, dtype=float)
         df['bearing'] = (df['bearing'] - df['bearing'].shift())
         df['bearing'] = df['bearing'].fillna(value=0)
@@ -395,6 +394,15 @@ def apidata_getPredict(items):
         right_turn = [1 if values == 1 else 0 for values in df.bearing]
         df['right_turn'] = right_turn
 
+        df['acc_gyro_x']=df['acceleration_x']*df['gyro_x']
+        df['acc_gyro_y']=df['acceleration_y']*df['gyro_y']
+        df['acc_gyro_z']=df['acceleration_z']*df['gyro_z']
+        df['acc_gyro_xy']=np.sqrt(df['acc_gyro_x']**2+df['acc_gyro_y']**2)
+        df['acc_gyro_xz']=np.sqrt(df['acc_gyro_x']**2+df['acc_gyro_z']**2)
+        df['acc_gyro_yz']=np.sqrt(df['acc_gyro_z']**2+df['acc_gyro_y']**2)
+        df['acc_gyro_xyz']=np.sqrt(df['acc_gyro_x']**2+df['acc_gyro_y']**2+df['acc_gyro_z']**2)
+
+        
         pca_gyro = PCA(n_components=1).fit(
             df.loc[:, ['gyro_x', 'gyro_y', 'gyro_z']])
         pca_gyro.explained_variance_ratio_
@@ -404,6 +412,7 @@ def apidata_getPredict(items):
         df['gyro'] = pca_gyro.transform(
             df.loc[:, ('gyro_x', 'gyro_y', 'gyro_z')])
         df.drop(['gyro_x', 'gyro_y', 'gyro_z'], axis=1, inplace=True)
+        df['acceleration_xy'] = df['acceleration_x']*df['acceleration_y']
         df['net_acceleration'] = np.sqrt(
             (df['acceleration_x'] ** 2) + (df['acceleration_y'] ** 2) + (df['acceleration_z'] ** 2))
 
@@ -417,7 +426,7 @@ def apidata_getPredict(items):
         multi = ['min', 'max', 'mean']
         speedagg = ['max', 'mean', 'sum']
         features_data = df.groupby('bookingid', as_index=False).agg(
-            {'left_turn': 'sum', 'right_turn': 'sum', 'gyro': multi, 'speed': speedagg, 'seconds': 'max', 'net_acceleration': multi})
+            {'left_turn' : 'sum' , 'right_turn' : 'sum','gyro': multi,'speed' : speedagg, 'seconds':'max', 'acc_gyro_x': 'mean', 'acc_gyro_y': 'mean', 'acc_gyro_z': 'mean', 'acc_gyro_xy': 'mean', 'acc_gyro_xz': 'mean', 'acc_gyro_yz': 'mean' ,'acc_gyro_xyz': 'mean', 'acceleration_xy': multi,'net_acceleration': multi})
 
         features_data.columns = features_data.columns.map(
             '_'.join).str.strip('_')
@@ -560,7 +569,9 @@ def register():
 
 @app.route("/facialRecog")
 def facialRecog():
-    return render_template('facerecog.html')
+    if 'username' in session:
+        username = escape(session['username'])
+    return render_template('facerecog.html', username=username)
 
 
 @app.route("/speedcheck")
