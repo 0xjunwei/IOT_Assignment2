@@ -57,6 +57,7 @@
             type: 'POST',            
             success: function(ndata){ 
               predict = ndata.predict
+              console.log(predict)
               average_speed = ndata.average_speed
               max_speed = ndata.max_speed
                 if (max_speed >= current_max_speed) {
