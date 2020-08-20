@@ -350,7 +350,6 @@ def apidata_getbookingdashboarddata():
             IndexName="bookingid-datetime_value-index",
             KeyConditionExpression=Key('bookingid').eq(bookingid),
             ScanIndexForward=False,
-            Limit=10
         )
 
         lst = []
