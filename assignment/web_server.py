@@ -1,7 +1,4 @@
-import gevent
-import gevent.monkey
-from gevent.pywsgi import WSGIServer
-gevent.monkey.patch_all()
+
 
 from sklearn.decomposition import PCA
 import numpy as np
@@ -25,7 +22,10 @@ import sys
 import argparse
 from flask import Flask, render_template, jsonify, request, Response, redirect, url_for, session, escape
 
-
+import gevent
+# import gevent.monkey
+from gevent.pywsgi import WSGIServer
+# gevent.monkey.patch_all()
 
 #import winsound
 
@@ -163,6 +163,7 @@ def apidata_getdata():
         print(sys.exc_info()[0])
         print(sys.exc_info()[1])
 
+
 @app.route("/api/getWarning", methods=['GET', 'POST'])
 def apidata_getWarning():
     try:
@@ -179,7 +180,7 @@ def apidata_getWarning():
         #    Limit=10
         # )
         # to pull
-        
+
         response = table.query(
             IndexName="sort-datetime_value-index",
             KeyConditionExpression=Key('sort').eq('1'),
@@ -188,15 +189,14 @@ def apidata_getWarning():
 
         items = response['Items']
 
-  
-        a_dict= {}
+        a_dict = {}
         a_list = []
         for i in response['Items']:
             if(i['speedkmhour'] > 80):
-                d = {'bookingid' : i['bookingid'] , 'speedkmhour' : i['speedkmhour'], 'datetime_value' : i['datetime_value']}
+                d = {'bookingid': i['bookingid'], 'speedkmhour': i['speedkmhour'],
+                     'datetime_value': i['datetime_value']}
                 dictionary_copy = d.copy()
                 a_list.append(dictionary_copy)
-
 
         print(a_list)
 
@@ -526,7 +526,6 @@ def camera():
         videoCaptureObject.release()
         cv2.destroyAllWindows()
         print('image saved!')
-
     return(path)
 
 
@@ -597,9 +596,9 @@ def analyse():
 
     print('Detected faces for')
     for faceDetail in detect_faces(BUCKET, file_name):
-        # ageLow = faceDetail['AgeRange']['Low']
+        ageLow = faceDetail['AgeRange']['Low']
         ageHigh = faceDetail['AgeRange']['High']
-        print('Age between {} and {} years old'.format(ageHigh))
+        print('Age between {} and {} years old'.format(ageLow, ageHigh))
         print('Here are the other attributes:')
         print(json.dumps(faceDetail, indent=4, sort_keys=True))
 
@@ -669,11 +668,13 @@ def facialRecog():
         username = escape(session['username'])
     return render_template('facerecog.html', username=username)
 
+
 @app.route("/livestream")
 def livestream():
     if 'username' in session:
         username = escape(session['username'])
     return render_template('liveview.html', username=username)
+
 
 @app.route("/speedcheck")
 def speedcheck():

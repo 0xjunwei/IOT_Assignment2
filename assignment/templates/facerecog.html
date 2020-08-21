@@ -152,29 +152,8 @@
     <!-- End of Header -->
 
     <!-- Page content -->
-     <!--Card 1 Script-->
-     <script>
-      //Camera API function
-      async function submit(){
-        // jQuery.ajax({
-        //   url: "http://localhost:5000/api/camera",
-        //   type: 'POST',
-        //   success: function () {
-        //     //When image is saved successfully, insert message 
-        //     alert('Picture Capture!')
-        //   }//end success
-        // });//end ajax
-        const API = `${rootUrl}api/camera`
+   
 
-        const data = {};
-        try{
-          const response =  await ajaxRequest(API, "POST", data)
-        }
-        catch(e){
-          console.log(e)
-        }  
-      }	
-    </script>
   <!--Card 1--> 
   <div class="container-fluid mt--6">
     <div class="row">
@@ -223,10 +202,9 @@
           <table class="table align-items-center">
             <thead class="thead-light">
                 <tr>
+                    <th scope="col" class="sort" data-sort="name">Age</th>
                     <th scope="col" class="sort" data-sort="name">Confidence</th>
-                    <th scope="col" class="sort" data-sort="name">Emotions</th>
-     
-                         
+                    <th scope="col" class="sort" data-sort="name">Emotion</th>     
                 </tr>
             </thead>
             <tbody id="data">
@@ -245,24 +223,48 @@
   </div>  
 
   <script>
-      function listimages(data) {
-        
-        newdata = [];
-        for (i in data) {
-            newdata.push(data[i])
-            newdata[i] = newdata[i].replace(new RegExp(/\\/g),"/")
-        }
-        
-        for(var i = 0; i < newdata.length; i++){
-          const image =  newdata[i]
-          $(".list").append(`
-              <tr>
-              <td> <input type="radio" name="imageFile" value="${image}"></td>
-              <td>${image}</td>
-              </tr>
-          `)      
-        }
-      
+    //Camera API function
+    async function submit(){
+    // jQuery.ajax({
+    //   url: "http://localhost:5000/api/camera",
+    //   type: 'POST',
+    //   success: function () {
+    //     //When image is saved successfully, insert message 
+    //     alert('Picture Capture!')
+    //   }//end success
+    // });//end ajax
+    const API = `${rootUrl}/api/camera`
+
+    const data = {};
+    try{
+      const response =  await ajaxRequest(API, "POST")
+      console.log(response)
+      alert("Picture capture!")
+    }
+    catch(e){
+      console.log(e)
+    }  
+  }	
+
+
+  function listimages(data) {
+    
+    newdata = [];
+    for (i in data) {
+        newdata.push(data[i])
+        newdata[i] = newdata[i].replace(new RegExp(/\\/g),"/")
+    }
+    
+    for(var i = 0; i < newdata.length; i++){
+      const image =  newdata[i]
+      $(".list").append(`
+          <tr>
+          <td> <input type="radio" name="imageFile" value="${image}"></td>
+          <td>${image}</td>
+          </tr>
+      `)      
+    }
+  
     }  
     //Get Images from the web server to load the table with Images taken
     async function get_images() {
@@ -322,17 +324,46 @@
         const response = await ajaxRequest(API, "POST", data)
         console.log(response)
           const emotions = response.Emotions
+          const age = response.AgeRange
+         
           console.log(emotions)
+          const confidenceLvl = Math.max.apply(Math, emotions.map(
+            function(emotion) { 
+              console.log(emotion)
+              
+              return emotion.Confidence; 
+            })
+          )
+          console.log(confidenceLvl)
           for(i = 0; i < emotions.length; i++){
-            console.log(emotions[i])
-            const emotion = emotions[i]
-            $("#data").append(`
-              <tr>
-                <td>${emotion.Confidence}</td>
-                <td> ${emotion.Type}</td>
-              </tr>
-            `)
+              const emotion = emotions[i]
+              if(emotion.Confidence == confidenceLvl){
+                $("#data").append(`
+                  <tr>
+                    <td>${age.Low}</td>
+                    <td>${confidenceLvl}</td>
+                    <td>${emotion.Type}</td>
+                  </tr>
+                `)
+              }
+
           }
+
+        
+
+
+          // for(i = 0; i < emotions.length; i++){
+          //   console.log(emotions[i])
+          //   const emotion = emotions[i]
+
+          //   emotion.Confidence
+          //   $("#data").append(`
+          //     <tr>
+          //       <td>${emotion.Confidence}</td>
+          //       <td> ${emotion.Type}</td>
+          //     </tr>
+          //   `)
+          // }
          
         
       }catch(e){
