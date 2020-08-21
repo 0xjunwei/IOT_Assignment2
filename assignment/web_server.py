@@ -643,8 +643,10 @@ def getS3():
     from PIL import Image
     import glob
     image_list = []
-    for filename in glob.glob('./static/saved_images/*.jpg'):
-        s3.download_file('BUCKET_NAME', 'OBJECT_NAME', 'FILE_NAME')
+    s3 = boto3.client('s3')
+    path = "./static/saved_images/"
+    bucket = ''
+    s3.download_file(Bucket=bucket, 'OBJECT_NAME', path + 'FILE_NAME')
     print(image_list)
     return(jsonify(image_list))
 
