@@ -1,32 +1,32 @@
-import gevent
-import gevent.monkey
-from gevent.pywsgi import WSGIServer
-gevent.monkey.patch_all()
-
-from flask import Flask, render_template, jsonify, request, Response, redirect, url_for, session, escape
-import argparse
-import sys
-import requests
-import time
-import boto3
-from boto3.dynamodb.conditions import Key, Attr
-import json
-import os
-import cv2
-from datetime import datetime
-import pickle
-from IOTAssignmentUtilitiesdorachua.MySQLManager import MySQLManager
-from IOTAssignmentUtilitiesdorachua.MySQLManager import QUERYTYPE_DELETE, QUERYTYPE_INSERT, QUERYTYPE_UPDATE
-from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
+from sklearn.decomposition import PCA
+import numpy as np
+import pandas as pd
 import jsonconverter as jsonc
-
+from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
+from IOTAssignmentUtilitiesdorachua.MySQLManager import QUERYTYPE_DELETE, QUERYTYPE_INSERT, QUERYTYPE_UPDATE
+from IOTAssignmentUtilitiesdorachua.MySQLManager import MySQLManager
+import pickle
+from datetime import datetime
+import cv2
+import os
+import json
+from boto3.dynamodb.conditions import Key, Attr
+import boto3
+import botocore
+from time import sleep
+import time
+import requests
+import sys
+import argparse
+from flask import Flask, render_template, jsonify, request, Response, redirect, url_for, session, escape
+import gevent
+# import gevent.monkey
+from gevent.pywsgi import WSGIServer
+# gevent.monkey.patch_all()
 
 
 #import winsound
 
-import pandas as pd
-import numpy as np
-from sklearn.decomposition import PCA
 
 app = Flask(__name__)
 
@@ -394,15 +394,15 @@ def apidata_getPredict(items):
         right_turn = [1 if values == 1 else 0 for values in df.bearing]
         df['right_turn'] = right_turn
 
-        df['acc_gyro_x']=df['acceleration_x']*df['gyro_x']
-        df['acc_gyro_y']=df['acceleration_y']*df['gyro_y']
-        df['acc_gyro_z']=df['acceleration_z']*df['gyro_z']
-        df['acc_gyro_xy']=np.sqrt(df['acc_gyro_x']**2+df['acc_gyro_y']**2)
-        df['acc_gyro_xz']=np.sqrt(df['acc_gyro_x']**2+df['acc_gyro_z']**2)
-        df['acc_gyro_yz']=np.sqrt(df['acc_gyro_z']**2+df['acc_gyro_y']**2)
-        df['acc_gyro_xyz']=np.sqrt(df['acc_gyro_x']**2+df['acc_gyro_y']**2+df['acc_gyro_z']**2)
+        df['acc_gyro_x'] = df['acceleration_x']*df['gyro_x']
+        df['acc_gyro_y'] = df['acceleration_y']*df['gyro_y']
+        df['acc_gyro_z'] = df['acceleration_z']*df['gyro_z']
+        df['acc_gyro_xy'] = np.sqrt(df['acc_gyro_x']**2+df['acc_gyro_y']**2)
+        df['acc_gyro_xz'] = np.sqrt(df['acc_gyro_x']**2+df['acc_gyro_z']**2)
+        df['acc_gyro_yz'] = np.sqrt(df['acc_gyro_z']**2+df['acc_gyro_y']**2)
+        df['acc_gyro_xyz'] = np.sqrt(
+            df['acc_gyro_x']**2+df['acc_gyro_y']**2+df['acc_gyro_z']**2)
 
-        
         pca_gyro = PCA(n_components=1).fit(
             df.loc[:, ['gyro_x', 'gyro_y', 'gyro_z']])
         pca_gyro.explained_variance_ratio_
@@ -426,7 +426,7 @@ def apidata_getPredict(items):
         multi = ['min', 'max', 'mean']
         speedagg = ['max', 'mean', 'sum']
         features_data = df.groupby('bookingid', as_index=False).agg(
-            {'left_turn' : 'sum' , 'right_turn' : 'sum','gyro': multi,'speed' : speedagg, 'seconds':'max', 'acc_gyro_x': 'mean', 'acc_gyro_y': 'mean', 'acc_gyro_z': 'mean', 'acc_gyro_xy': 'mean', 'acc_gyro_xz': 'mean', 'acc_gyro_yz': 'mean' ,'acc_gyro_xyz': 'mean', 'acceleration_xy': multi,'net_acceleration': multi})
+            {'left_turn': 'sum', 'right_turn': 'sum', 'gyro': multi, 'speed': speedagg, 'seconds': 'max', 'acc_gyro_x': 'mean', 'acc_gyro_y': 'mean', 'acc_gyro_z': 'mean', 'acc_gyro_xy': 'mean', 'acc_gyro_xz': 'mean', 'acc_gyro_yz': 'mean', 'acc_gyro_xyz': 'mean', 'acceleration_xy': multi, 'net_acceleration': multi})
 
         features_data.columns = features_data.columns.map(
             '_'.join).str.strip('_')
@@ -457,12 +457,6 @@ def apidata_getPredict(items):
 #         print(sys.exc_info()[0])
 #         print(sys.exc_info()[1])
 
-# S3 bucket for Facial Recognition
-BUCKET = 'iot-assignment2-fr'
-location = {'LocationConstraint': 'us-east-1'}
-# Get the images from static/saved_images
-file_path = "../static/saved_images"
-
 
 # Camera API
 # Take Picture using CV2 library
@@ -489,25 +483,80 @@ def camera():
     return(path)
 
 
-def uploadToS3(file_path, file_name, bucket_name, location):
-    s3 = boto3.resource('s3')  # Create an S3 resource
-    exists = True
+def detect_labels(bucket,
+                  key,
+                  max_labels=10,
+                  min_confidence=90,
+                  region="us-east-1"):
+    rekognition = boto3.client("rekognition", region)
+    response = rekognition.detect_labels(
+        Image={"S3Object": {
+            "Bucket": bucket,
+            "Name": key,
+        }},
+        MaxLabels=max_labels,
+        MinConfidence=min_confidence,
+    )
+    return response['Labels']
 
-    try:
-        s3.meta.client.head_bucket(Bucket=bucket_name)
-    except botocore.exceptions.ClientError as e:
-        error_code = int(e.response['Error']['Code'])
-        if error_code == 404:
-            exists = False
 
-    if exists == False:
-        s3.create_bucket(Bucket=bucket_name,
-                         CreateBucketConfiguration=location)
+def detect_faces(bucket,
+                 key,
+                 max_labels=10,
+                 min_confidence=90,
+                 region="us-east-1"):
+    rekognition = boto3.client("rekognition", region)
+    response = rekognition.detect_faces(
+        Image={"S3Object": {
+            "Bucket": bucket,
+            "Name": key,
+        }},
+        Attributes=['ALL'])
+    return response['FaceDetails']
 
-    # Upload the file
-    full_path = file_path + "/" + file_name
-    s3.Object(bucket_name, file_name).put(Body=open(full_path, 'rb'))
-    print("File uploaded")
+
+@app.route("/api/analyse", methods=["POST"])
+def analyse():
+    data = request.json
+    file_name = data['imageName']
+
+    # S3 bucket for Facial Recognition
+    BUCKET = 'iot-assignment2-fr'
+    location = {'LocationConstraint': 'us-east-1'}
+    # Get the images from static/saved_images
+    file_path = "./static/saved_images"
+
+    def uploadToS3(file_path, file_name, bucket_name, location):
+        s3 = boto3.resource('s3')  # Create an S3 resource
+        exists = True
+
+        try:
+            s3.meta.client.head_bucket(Bucket=bucket_name)
+        except botocore.exceptions.ClientError as e:
+            error_code = int(e.response['Error']['Code'])
+            if error_code == 404:
+                exists = False
+
+        if exists == False:
+            s3.create_bucket(Bucket=bucket_name,
+                             CreateBucketConfiguration=location)
+
+        # Upload the file
+        full_path = file_path + "/" + file_name
+        s3.Object(bucket_name, file_name).put(Body=open(full_path, 'rb'))
+        print("File uploaded")
+
+    uploadToS3(file_path, file_name, BUCKET, location)
+
+    print('Detected faces for')
+    for faceDetail in detect_faces(BUCKET, file_name):
+        # ageLow = faceDetail['AgeRange']['Low']
+        ageHigh = faceDetail['AgeRange']['High']
+        print('Age between {} and {} years old'.format(ageHigh))
+        print('Here are the other attributes:')
+        print(json.dumps(faceDetail, indent=4, sort_keys=True))
+
+    return(json.dumps(faceDetail, indent=4, sort_keys=True))
 
 
 # Get Saved images
