@@ -74,11 +74,11 @@
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('livestream') }}">
-                <i class="ni ni-bullet-list-67 text-default"></i>
-                <span class="nav-link-text">Live View</span>
-              </a>
-            </li>
+                <a class="nav-link" href="{{ url_for('livestream') }}">
+                  <i class="ni ni-bullet-list-67 text-default"></i>
+                  <span class="nav-link-text">Live View</span>
+                </a>
+              </li>
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('facialRecog') }}">
                 <i class="ni ni-bullet-list-67 text-default"></i>
@@ -177,65 +177,21 @@
     </script>
   <!--Card 1--> 
   <div class="container-fluid mt--6">
-    <div class="row">
-      <div class="card" style="width: 18rem;">
-        <img class="card-img-top" src="../static/assets/images/face.png" alt="Card image cap">
-        <div class="card-body">
-          <h3 class="card-title">Camera</h3>
-          <p class="card-text">Click capture to take a picture of the driver's current emotional state.</p>
-          <button class="btn btn-primary" type="button" onclick="submit()">Capture</button>
+    <div class="col">
+      <div class="card">
+        <img class="card-img-top" src="http://169.254.134.247:8081/" style="padding: 1em; border-radius: 2em;">
+        <div class="card-body" style="padding: 2em;">
+          <h3 class="card-title">From RaspBerry Pi</h3>
+          <p class="card-text">Live Stream of Vehicle</p>
       </div>
       <div class="w-100"></div>
     </div>
   
     
 
-    <div class="col">
-      <div class="card">
-        <div class="card-body">
-          <h2 class="card-title">Images</h2>
-            <form id="s3Images">
-              <table class="table align-items-center">
-                <thead class="thead-light">
-                    <tr>
-                        <th scope="col"></th>
-                        <th scope="col" class="sort" data-sort="name">Image Name</th>         
-                    </tr>
-                </thead>
-                <tbody class="list">
-    
-                </tbody> 
-              </table>
-              <input type="submit" name="submit" class="btn btn-primary btn-sm"></input>
-            </form>
-           
-        </div>
-      </div>
-      <div class="w-100"></div>
-    </div>
 
     
-    <div class="col">
-      <div class="card">
-        <div class="card-body">
-          <h2 class="card-title">Process Data</h2>
-          <div id="photo"></div>
-          <table class="table align-items-center">
-            <thead class="thead-light">
-                <tr>
-                    <th scope="col" class="sort" data-sort="name">Confidence</th>
-                    <th scope="col" class="sort" data-sort="name">Emotions</th>
-     
-                         
-                </tr>
-            </thead>
-            <tbody id="data">
-
-            </tbody> 
-        </div>
-      </div>
-    </div>
-    </div>
+    
  
   <!--End of Card--> 
   
@@ -243,109 +199,6 @@
   <!-- End of Page content -->       
   
   </div>  
-
-  <script>
-      function listimages(data) {
-        
-        newdata = [];
-        for (i in data) {
-            newdata.push(data[i])
-            newdata[i] = newdata[i].replace(new RegExp(/\\/g),"/")
-        }
-        
-        for(var i = 0; i < newdata.length; i++){
-          const image =  newdata[i]
-          $(".list").append(`
-              <tr>
-              <td> <input type="radio" name="imageFile" value="${image}"></td>
-              <td>${image}</td>
-              </tr>
-          `)      
-        }
-      
-    }  
-    //Get Images from the web server to load the table with Images taken
-    async function get_images() {
-      // jQuery.ajax({
-      // //This will retrieve the contents of the folder if the folder is configured as 'browsable'
-      // url: "http://localhost:5000/api/getImages",
-      // type: 'GET',   
-      // success: function (data) {
-      //   listimages(data)
-      // }
-      // });
-      const API = `${rootUrl}/api/getImages`
-
-      try{
-        const response = await ajaxRequest(API, "GET")
-        listimages(response)
-        console.log(response)
-      } catch(e){
-        console.log(e)
-      }
-    }
-    get_images();
-    
-    const imageForm = $("#s3Images")
-
-    //Check if radio button is selected
-    function checkSelectedId(selectedId) {
-    if (!selectedId) {
-      alert('You have not selected anything');
-      return false;
-    }
-      return true;
-    }
-    console.log($('input[name="imageFile"]').val())
-    
-    //Send selected image back to the database to send it to s3 
-    async function postImage(event){
-      event.preventDefault();
-      //Get Selected ImageFile
-      const imageSelected = $('input[name="imageFile"]:checked').val()
-      console.log(imageSelected)
-      if (!checkSelectedId(imageSelected)) return;
-      $("#photo").html(`
-        <img id="profile" src="${imageSelected}" alt="Avatar">
-        
-      `)
-      console.log(imageSelected.slice(22)) 
-    
-      const API = `${rootUrl}/api/analyse`
-
-      const data = {
-        imageName: imageSelected.slice(22)
-      }
-      console.log(data)
-      
-      try{
-        const response = await ajaxRequest(API, "POST", data)
-        console.log(response)
-          const emotions = response.Emotions
-          console.log(emotions)
-          for(i = 0; i < emotions.length; i++){
-            console.log(emotions[i])
-            const emotion = emotions[i]
-            $("#data").append(`
-              <tr>
-                <td>${emotion.Confidence}</td>
-                <td> ${emotion.Type}</td>
-              </tr>
-            `)
-          }
-         
-        
-      }catch(e){
-        console.log(e)
-      }
-      alert("Send to AWS S3 bucket!")
-
-    }
-
-    imageForm.submit(postImage)
-  </script>
-
-
 
 </body>
 

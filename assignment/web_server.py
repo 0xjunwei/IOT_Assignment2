@@ -669,6 +669,11 @@ def facialRecog():
         username = escape(session['username'])
     return render_template('facerecog.html', username=username)
 
+@app.route("/livestream")
+def livestream():
+    if 'username' in session:
+        username = escape(session['username'])
+    return render_template('liveview.html', username=username)
 
 @app.route("/speedcheck")
 def speedcheck():
