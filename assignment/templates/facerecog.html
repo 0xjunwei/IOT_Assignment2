@@ -242,7 +242,7 @@
     try{
       const response =  await ajaxRequest(API, "POST")
       console.log(response)
-      alert("Picture capture!")
+      
     }
     catch(e){
       console.log(e)
@@ -263,28 +263,20 @@
     try{
       const response =  await ajaxRequest(API, "POST")
       console.log(response)
-      alert("Picture capture on Pi Cam!")
+      
     }
     catch(e){
       console.log(e)
     }  
   }	
   async function takeS3(){
-    // jQuery.ajax({
-    //   url: "http://localhost:5000/api/camera",
-    //   type: 'POST',
-    //   success: function () {
-    //     //When image is saved successfully, insert message 
-    //     alert('Picture Capture!')
-    //   }//end success
-    // });//end ajax
-    const API = `${rootUrl}/api/picam`
+    
+    const API = `${rootUrl}/api/getS3`
 
     const data = {};
     try{
-      const response =  await ajaxRequest(API, "POST")
+      const response =  await ajaxRequest(API, "GET")
       console.log(response)
-      alert("Picture capture on Pi Cam!")
     }
     catch(e){
       console.log(e)

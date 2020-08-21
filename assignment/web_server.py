@@ -23,9 +23,9 @@ import argparse
 from flask import Flask, render_template, jsonify, request, Response, redirect, url_for, session, escape
 
 import gevent
-# import gevent.monkey
+#import gevent.monkey
 from gevent.pywsgi import WSGIServer
-# gevent.monkey.patch_all()
+#gevent.monkey.patch_all()
 
 #import winsound
 
@@ -643,10 +643,12 @@ def getS3():
     from PIL import Image
     import glob
     image_list = []
-    s3 = boto3.client('s3')
-    path = "./static/saved_images/"
-    bucket = ''
-    s3.download_file(Bucket=bucket, 'OBJECT_NAME', path + 'FILE_NAME')
+    s3 = boto3.resource('s3')
+    bucket = 'iot-assignment2-fr'
+    obj = 'image1.jpg'
+    s3.Bucket(bucket).download_file(obj, './static/saved_images/image01.jpg')
+    for filename in glob.glob('./static/saved_images/*.jpg'):
+        image_list.append(filename)
     print(image_list)
     return(jsonify(image_list))
 
