@@ -27,9 +27,6 @@ import gevent
 from gevent.pywsgi import WSGIServer
 #gevent.monkey.patch_all()
 
-#import winsound
-
-
 app = Flask(__name__)
 
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
@@ -37,8 +34,6 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 model = pickle.load(open('grab_model.pkl', 'rb'))
 
 # telegram bot to send alerts to the analyst
-
-
 def telegram_bot(bot_message):
 
     bot_token = '1157671100:AAFnOQeaeRu6Jy0RsHzGf0Q9RUqUV7H4kbI'
@@ -136,14 +131,6 @@ def apidata_getdata():
         dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
         table = dynamodb.Table(table_name)
 
-        # response = table.query(
-        # Add the name of the index you want to use in your query.
-        #    IndexName="bookingid-datetime_value-index",
-        #    KeyConditionExpression=Key('bookingid').eq('0.0'),
-        #    ScanIndexForward=False,
-        #    Limit=10
-        # )
-        # to pull
         response = table.query(
             IndexName="sort-datetime_value-index",
             KeyConditionExpression=Key('sort').eq('1'),
@@ -156,8 +143,6 @@ def apidata_getdata():
         n = 10  # limit to last 10 items
         data = items[:n]
         data_reversed = data[::-1]
-        # print(data_reversed)
-        # print( (json.loads(jsonc.data_to_json(data_reversed)))
         return jsonify(json.loads(jsonc.data_to_json(data_reversed)))
     except:
         print(sys.exc_info()[0])
@@ -171,15 +156,6 @@ def apidata_getWarning():
         print(f"Querying table {table_name}")
         dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
         table = dynamodb.Table(table_name)
-
-        # response = table.query(
-        # Add the name of the index you want to use in your query.
-        #    IndexName="bookingid-datetime_value-index",
-        #    KeyConditionExpression=Key('bookingid').eq('0.0'),
-        #    ScanIndexForward=False,
-        #    Limit=10
-        # )
-        # to pull
 
         response = table.query(
             IndexName="sort-datetime_value-index",
@@ -300,41 +276,6 @@ def apidata_register():
     except:
         print(sys.exc_info()[0])
         print(sys.exc_info()[1])
-
-# # route to handle the profile
-# @app.route("/api/profile",methods=['GET', 'POST'])
-# def apidata_profile():
-#     try:
-#         # Output message if error
-#         name = username
-#         msg = ''
-#         role = 'analyst'
-#         # Check
-#         if 'username' in request.form and 'email' in request.form and 'number' in request.form and 'password' in request.form and 'cpassword' in request.form:
-#             username = request.form['username']
-#             email = request.form['email']
-#             number = request.form['number']
-#             password = request.form['password']
-#             cpassword = request.form['cpassword']
-
-#         u='iotuser';pw='iotpassword';h='localhost';db='iotdatabase'
-#         mysqlm = MySQLManager(u,pw,h,db)
-#         mysqlm.connect()
-
-#         sql="UPDATE users SET %(username)s, %(email)s, %(number)s, %(password)s, %(role)s WHERE name = username"
-#         updatedetails = {"username": username, "email": email, "number": number, "password": password, "role": role}
-#         userupdate = mysqlm.insertupdatedelete(QUERYTYPE_UPDATE,sql,updatedetails)
-#         mysqlm.disconnect()
-
-#         if (userupdate):
-#             session['username'] = username
-#             return redirect(url_for('dashboard', username = username), code = 303)
-#         else:
-#             return render_template('profile.html', msg = "Unable to update, please try again")
-
-#     except:
-#         print(sys.exc_info()[0])
-#         print(sys.exc_info()[1])
 
 # this is to handle the dashboard data
 @app.route("/api/getdashboarddata", methods=['GET', 'POST'])
@@ -487,22 +428,6 @@ def apidata_getPredict(items):
     except:
         print(sys.exc_info()[0])
         print(sys.exc_info()[1])
-
-# @app.route("/api/getdashboarddata",methods=['GET', 'POST'])
-# def apidata_getdashboarddata():
-#     try:
-#
-
-
-#         #items = response['Items']
-
-#         #n=10 # limit to last 10 items
-#         dashboarddata = {'driver_data': unique_booking_count, 'average_speed_data': unique_booking_count, 'max_speed': unique_booking_count}
-
-#         return dashboarddata
-#     except:
-#         print(sys.exc_info()[0])
-#         print(sys.exc_info()[1])
 
 
 # Camera API
