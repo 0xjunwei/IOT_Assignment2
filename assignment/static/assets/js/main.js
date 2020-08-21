@@ -1,4 +1,4 @@
-const rootUrl = 'http://localhost:5000';
+const rootUrl = 'http://100.25.139.92:5000';
 
 //Default values for Ajax requests
 $.ajaxSetup({
