@@ -85,7 +85,7 @@
       function getNewData(){
 
           jQuery.ajax({
-              url: "/api/getdata" ,
+              url: "/api/getWarning" ,
               type: 'POST',          
               success: function(ndata, textStatus, xhr){ 
                   chartdata = ndata;
@@ -122,7 +122,7 @@
                 jsdatetime = new Date(Date.parse(datetime)); 
                 strDate = jsdatetime.toLocaleDateString();              
                 jstime = jsdatetime.toLocaleTimeString();
-                appendAverage(speed)          
+                appendAverage(Math.round(speed))          
                 tabledata.addRows([[bookingid,strDate,jstime,speed, "<form action='{{ url_for('apidata_sendalert') }}' method='POST'><input type='hidden' id='bookingid' name='bookingid' value='" + bookingid + "'><input type='hidden' id='date' name='date' value=" + strDate + "><input type='hidden' id='time' name='time' value=" + jstime + "><input type='hidden' id='speedkmhour' name='speedkmhour' value=" + speed + "><input type='submit' value='Send Alert'></form>"]]);
                 currentrow++
 

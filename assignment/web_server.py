@@ -161,6 +161,51 @@ def apidata_getdata():
         print(sys.exc_info()[0])
         print(sys.exc_info()[1])
 
+@app.route("/api/getWarning", methods=['GET', 'POST'])
+def apidata_getWarning():
+    try:
+        table_name = 'grabtable'
+        print(f"Querying table {table_name}")
+        dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+        table = dynamodb.Table(table_name)
+
+        # response = table.query(
+        # Add the name of the index you want to use in your query.
+        #    IndexName="bookingid-datetime_value-index",
+        #    KeyConditionExpression=Key('bookingid').eq('0.0'),
+        #    ScanIndexForward=False,
+        #    Limit=10
+        # )
+        # to pull
+        
+        response = table.query(
+            IndexName="sort-datetime_value-index",
+            KeyConditionExpression=Key('sort').eq('1'),
+            ScanIndexForward=False,
+        )
+
+        items = response['Items']
+
+  
+        a_dict= {}
+        a_list = []
+        for i in response['Items']:
+            if(i['speedkmhour'] > 80):
+                d = {'bookingid' : i['bookingid'] , 'speedkmhour' : i['speedkmhour'], 'datetime_value' : i['datetime_value']}
+                dictionary_copy = d.copy()
+                a_list.append(dictionary_copy)
+
+
+        print(a_list)
+
+        # print(data_reversed)
+        # print( (json.loads(jsonc.data_to_json(data_reversed)))
+        return jsonify(json.loads(jsonc.data_to_json(a_list)))
+    except:
+        print(sys.exc_info()[0])
+        print(sys.exc_info()[1])
+
+
 # route to handle the login
 @app.route("/api/login", methods=['GET', 'POST'])
 def apidata_login():
