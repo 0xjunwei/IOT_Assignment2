@@ -163,6 +163,7 @@
           <h3 class="card-title">Camera</h3>
           <p class="card-text">Click capture to take a picture of the driver's current emotional state.</p>
           <button class="btn btn-primary" type="button" onclick="submit()">Capture</button>
+          <button class="btn btn-primary" type="button" onclick="submitpi()">Pi Cam</button>
       </div>
       <div class="w-100"></div>
     </div>
@@ -184,7 +185,9 @@
                 <tbody class="list">
     
                 </tbody> 
+              
               </table>
+              <button class="btn btn-primary btn-sm" type="button" onclick="takeS3()">retrieve s3 bucket image</button>
               <input type="submit" name="submit" class="btn btn-primary btn-sm"></input>
             </form>
            
@@ -240,6 +243,48 @@
       const response =  await ajaxRequest(API, "POST")
       console.log(response)
       alert("Picture capture!")
+    }
+    catch(e){
+      console.log(e)
+    }  
+  }	
+  async function submitpi(){
+    // jQuery.ajax({
+    //   url: "http://localhost:5000/api/camera",
+    //   type: 'POST',
+    //   success: function () {
+    //     //When image is saved successfully, insert message 
+    //     alert('Picture Capture!')
+    //   }//end success
+    // });//end ajax
+    const API = `${rootUrl}/api/picam`
+
+    const data = {};
+    try{
+      const response =  await ajaxRequest(API, "POST")
+      console.log(response)
+      alert("Picture capture on Pi Cam!")
+    }
+    catch(e){
+      console.log(e)
+    }  
+  }	
+  async function takeS3(){
+    // jQuery.ajax({
+    //   url: "http://localhost:5000/api/camera",
+    //   type: 'POST',
+    //   success: function () {
+    //     //When image is saved successfully, insert message 
+    //     alert('Picture Capture!')
+    //   }//end success
+    // });//end ajax
+    const API = `${rootUrl}/api/picam`
+
+    const data = {};
+    try{
+      const response =  await ajaxRequest(API, "POST")
+      console.log(response)
+      alert("Picture capture on Pi Cam!")
     }
     catch(e){
       console.log(e)

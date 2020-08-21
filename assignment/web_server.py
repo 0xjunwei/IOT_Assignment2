@@ -528,6 +528,27 @@ def camera():
         print('image saved!')
     return(path)
 
+@app.route("/api/picam", methods=['GET', 'POST'])
+def picamera():
+    host = "a19dfxc0pabiyn-ats.iot.us-east-1.amazonaws.com"
+    rootCAPath = "certs/rootca.pem"
+    certificatePath = "certs/rasp_pi_cam.pem.crt"
+    privateKeyPath = "certs/pi_cam-private.pem.key"
+    my_rpi = AWSIoTMQTTClient("PubSub-P1807000")
+    my_rpi.configureEndpoint(host, 8883)
+    my_rpi.configureCredentials(rootCAPath, privateKeyPath, certificatePath)
+
+    my_rpi.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
+    my_rpi.configureDrainingFrequency(2)  # Draining: 2 Hz
+    my_rpi.configureConnectDisconnectTimeout(10)  # 10 sec
+    my_rpi.configureMQTTOperationTimeout(5)  # 5 sec
+
+    my_rpi.connect()
+    mqtt_message = "1337"
+    my_rpi.publish("iot/capture", mqtt_message, 1)
+
+    return(mqtt_message)
+
 
 def detect_labels(bucket,
                   key,
@@ -613,11 +634,19 @@ def getImages():
     image_list = []
     for filename in glob.glob('./static/saved_images/*.jpg'):
         image_list.append(filename)
-
     print(image_list)
-
     return(jsonify(image_list))
 
+#retrieve from s3
+@app.route("/api/getS3", methods=['GET'])
+def getS3():
+    from PIL import Image
+    import glob
+    image_list = []
+    for filename in glob.glob('./static/saved_images/*.jpg'):
+        s3.download_file('BUCKET_NAME', 'OBJECT_NAME', 'FILE_NAME')
+    print(image_list)
+    return(jsonify(image_list))
 
 @app.route("/multiple")
 def multiple():
