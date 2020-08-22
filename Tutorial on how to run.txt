@@ -1,0 +1,19 @@
+key in AWS Credentials in ~/.aws
+Edit the file within /static/assets/js/main.js
+> change the top most ip address to the ip address of the ec2 server to allow it to run, if running on localhost change the ip address into localhost.
+
+The code is meant for ec2 therefore, double clicking it allows external ip to access
+
+Login with the credentials:
+username: alex
+password: password
+
+>Viewing of live stream require hardware to be connected on our end
+
+>sending of alert would be to a telegram bot connected to gavin phone
+
+>Other links would be possible to be viewed, however dynamodb access is required
+
+therefore, access to dynamodb
+username: junwei.18@ichat.sp.edu.sg
+password: IotAssignment123@
